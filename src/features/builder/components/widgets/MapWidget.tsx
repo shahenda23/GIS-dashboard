@@ -2,13 +2,13 @@ import { useEffect, useRef } from 'react'
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { Protocol } from 'pmtiles'
-
-const protocol = new Protocol()
-maplibregl.addProtocol('pmtiles', protocol.tile.bind(protocol))
 import { MapConfig } from '../../types/builder.types'
 import { useBuilderStore } from '../../store/builderStore'
 import { getLayerHandler } from './map/layerRegistry'
 import { getGeometryType } from './map/handlers/GeoJsonHandler'
+
+const protocol = new Protocol()
+maplibregl.addProtocol('pmtiles', protocol.tile.bind(protocol))
 
 interface MapWidgetProps {
   widgetId: string

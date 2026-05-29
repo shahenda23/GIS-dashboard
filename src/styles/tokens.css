@@ -1,0 +1,28 @@
+:root {
+  --accent:       #0ea5e9;
+  --accent-hover: #0284c7;
+  --accent-light: #f0f9ff;
+
+  --nav-bg:      #ffffff;
+  --nav-border:  #e5e7eb;
+
+  --page-bg:     #f9fafb;
+  --surface:     #ffffff;
+
+  --text-primary:   #111827;
+  --text-secondary: #6b7280;
+  --text-muted:     #9ca3af;
+
+  --border:       #e5e7eb;
+  --border-strong:#d1d5db;
+
+  --status-live:  #22c55e;
+
+  --font: -apple-system, BlinkMacSystemFont,
+          'Segoe UI', Helvetica, Arial, sans-serif;
+
+  --radius-sm:  4px;
+  --radius-md:  6px;
+  --radius-lg:  8px;
+  --radius-xl:  12px;
+}

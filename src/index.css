@@ -1,0 +1,68 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  scrollbar-width: thin;
+  scrollbar-color: #d1d5db transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 999px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+body {
+  font-family: var(--font);
+  background: var(--page-bg);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+}
+
+button {
+  cursor: pointer;
+  font-family: var(--font);
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* GIS Popup Styles */
+.gis-popup .maplibregl-popup-content {
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+  border: 1px solid #e5e7eb;
+  padding: 12px 14px;
+}
+
+.gis-popup .maplibregl-popup-close-button {
+  font-size: 16px;
+  color: #9ca3af;
+  padding: 4px 8px;
+}
+
+.gis-popup .maplibregl-popup-close-button:hover {
+  color: #111827;
+  background: transparent;
+}
+
+.gis-popup .maplibregl-popup-tip {
+  border-top-color: #ffffff;
+}
+
+@import 'maplibre-gl/dist/maplibre-gl.css';
+

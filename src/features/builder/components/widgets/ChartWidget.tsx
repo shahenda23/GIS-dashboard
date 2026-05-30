@@ -12,6 +12,7 @@ interface ChartWidgetProps {
 }
 
 function ChartWidget({ type, config }: ChartWidgetProps) {
+  
   switch (type) {
     case 'bar-chart':     return <BarChart config={config} />
     case 'line-chart':    return <LineChart config={config} />

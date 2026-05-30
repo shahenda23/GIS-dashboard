@@ -143,6 +143,7 @@ import { supabase } from '../../../lib/supabase'
 interface BuilderStore extends BuilderState {
   isLoading: boolean
   isSaving: boolean
+  isPublic: boolean
   setTitle: (title: string) => void
   setDashboardId: (id: string) => void
   addWidget: (widget: Widget) => void
@@ -155,6 +156,7 @@ interface BuilderStore extends BuilderState {
   toggleLayer: (id: string) => void
   updateLayerData: (id: string, data: any) => void
   zoomToLayer: (id: string) => void
+  setPublic: (val: boolean) => void
   saveDashboard: () => Promise<void>
   loadDashboard: (id: string) => Promise<void>
   setUnsaved: () => void
@@ -170,6 +172,7 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
   zoomToLayerId: null,
   isLoading: false,
   isSaving: false,
+  isPublic: false,
   updatedAt: null as string | null,
 
   setTitle: (title) =>
@@ -237,6 +240,8 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
 
   zoomToLayer: (id) => set({ zoomToLayerId: id }),
 
+  setPublic: (val) => set({ isPublic: val, isSaved: false }),
+
   // ── Save to Supabase ──────────────────────────────────────────────────────
   saveDashboard: async () => {
     set({ isSaving: true })
@@ -264,7 +269,7 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
       title:      state.dashboardTitle,
       widgets:    state.widgets,
       layers:     layersToSave,
-      is_public:  false,
+      is_public:  state.isPublic,
       thumbnail:  '🗺️',
       updated_at: new Date().toISOString(),
     }
@@ -300,6 +305,7 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
       dashboardTitle: data.title,
       widgets:        data.widgets    ?? [],
       layers:         data.layers     ?? [],
+      isPublic:       data.is_public  ?? false,
       isSaved:        true,
       zoomToLayerId:  null,
       isLoading:      false,

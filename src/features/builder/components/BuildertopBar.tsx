@@ -13,8 +13,9 @@ function BuilderTopBar() {
   const isSaving       = useBuilderStore(s => s.isSaving)
   const setTitle       = useBuilderStore(s => s.setTitle)
   const saveDashboard  = useBuilderStore(s => s.saveDashboard)
+  const isPublic   = useBuilderStore(s => s.isPublic)
+  const setPublic  = useBuilderStore(s => s.setPublic)
   const [isEditing, setIsEditing] = useState(false);
-  const [isPublished, setIsPublished] = useState(false);
   const [showShare, setShowShare] = useState(false);
   const [showUnsaved, setShowUnsaved] = useState(false);
   const [pendingNav, setPendingNav] = useState("/");
@@ -327,13 +328,14 @@ function BuilderTopBar() {
               {t.publish}
             </span>
             <div
-              onClick={() => setIsPublished(!isPublished)}
+              onClick={async () => {
+                setPublic(!isPublic)
+                await saveDashboard()
+              }}
               style={{
                 width: "36px",
                 height: "20px",
-                background: isPublished
-                  ? "var(--accent)"
-                  : "var(--border-strong)",
+                background: isPublic ? "var(--accent)" : "var(--border-strong)",
                 borderRadius: "20px",
                 cursor: "pointer",
                 position: "relative",
@@ -345,7 +347,7 @@ function BuilderTopBar() {
                 style={{
                   position: "absolute",
                   top: "3px",
-                  left: isPublished ? "19px" : "3px",
+                  left: isPublic ? "19px" : "3px",
                   width: "14px",
                   height: "14px",
                   background: "#fff",

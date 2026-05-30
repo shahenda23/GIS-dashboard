@@ -6,13 +6,16 @@ import './styles/tokens.css'
 import { ThemeProvider } from './context/ThemeContext'
 import './styles/tokens.css'
 import './index.css'
+import { AuthProvider } from './context/AuthContext'
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
 );
 root.render(
   <ThemeProvider>
-    <App />
+    <AuthProvider>
+      <App />
+    </AuthProvider>
   </ThemeProvider>
 );
 

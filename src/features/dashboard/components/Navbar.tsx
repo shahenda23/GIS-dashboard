@@ -1,5 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { useTheme } from '../../../context/ThemeContext'
+import UserMenu from './UserMenu'
+import logoUrl from '../../../assets/logo.svg'
 
 interface NavbarProps {
   onNewDashboard?: () => void
@@ -34,20 +36,7 @@ function Navbar({ onNewDashboard, showNewButton = true }: NavbarProps) {
           cursor: 'pointer',
         }}
       >
-        <div style={{
-          width: '35px',
-          height: '35px',
-          background: 'var(--accent)',
-          borderRadius: 'var(--radius-md)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: '#fff',
-          fontSize: '14px',
-          fontWeight: '600',
-        }}>
-          G
-        </div>
+        <img src={logoUrl} alt="logo" style={{ width: '35px', height: '35px', borderRadius: 'var(--radius-md)' }} />
         <span style={{
           fontSize: '18px',
           fontWeight: '600',
@@ -92,6 +81,8 @@ function Navbar({ onNewDashboard, showNewButton = true }: NavbarProps) {
             <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
           </svg>
         </button>
+
+        <UserMenu />
 
       </div>
     </nav>

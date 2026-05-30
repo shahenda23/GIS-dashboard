@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { useTheme } from '../../../context/ThemeContext'
+import logoUrl from '../../../assets/logo.svg'
 
 function Footer() {
   const navigate = useNavigate()
@@ -67,20 +68,7 @@ function Footer() {
             gap: '8px',
             marginBottom: '12px',
           }}>
-            <div style={{
-              width: '28px',
-              height: '28px',
-              background: 'var(--accent)',
-              borderRadius: 'var(--radius-md)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#fff',
-              fontSize: '14px',
-              fontWeight: '600',
-            }}>
-              G
-            </div>
+            <img src={logoUrl} alt="logo" style={{ width: '28px', height: '28px', borderRadius: 'var(--radius-md)' }} />
             <span style={{
               fontSize: '14px',
               fontWeight: '600',

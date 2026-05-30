@@ -12,22 +12,10 @@ interface MapWidgetProps {
 }
 
 export const MAP_STYLES = [
-  { 
-    value: 'https://demotiles.maplibre.org/style.json', 
-    label: 'Default' 
-  },
-  { 
-    value: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json', 
-    label: 'Positron' 
-  },
-  { 
-    value: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json', 
-    label: 'Dark Matter' 
-  },
-  { 
-    value: 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json', 
-    label: 'Voyager' 
-  },
+  { value: 'https://tiles.openfreemap.org/styles/liberty',  label: 'Liberty' },
+  { value: 'https://tiles.openfreemap.org/styles/bright',   label: 'Bright' },
+  { value: 'https://tiles.openfreemap.org/styles/positron', label: 'Positron' },
+  { value: 'https://tiles.openfreemap.org/styles/fiord',    label: 'Fiord (Dark)' },
 ]
 
 // ── BBox from GeoJSON ─────────────────────────────────────────────────────────

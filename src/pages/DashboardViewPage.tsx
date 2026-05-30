@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import logoUrl from '../assets/logo.svg'
+import AppLoader from '../components/AppLoader'
 import { Responsive, WidthProvider } from 'react-grid-layout/legacy'
 import type { LayoutItem } from 'react-grid-layout/legacy'
 import { useBuilderStore } from '../features/builder/store/builderStore'
@@ -66,9 +67,8 @@ export default function DashboardViewPage() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { lang, toggleLang } = useTheme()
-  const { widgets, layers, dashboardTitle, dashboardId, loadDashboard } = useBuilderStore()
+  const { widgets, layers, dashboardTitle, dashboardId, loadDashboard, isLoading, updatedAt } = useBuilderStore()
   const [showShare,  setShowShare]  = useState(false)
-  const [updatedAt,  setUpdatedAt]  = useState<string | null>(null)
   const [notFound,   setNotFound]   = useState(false)
   const [cardHover,  setCardHover]  = useState<string | null>(null)
   const [viewportH,  setViewportH]  = useState(window.innerHeight)
@@ -115,19 +115,22 @@ export default function DashboardViewPage() {
     },
   }[lang]
 
-  // Load dashboard data
+  // Load dashboard data from Supabase
   useEffect(() => {
-    const all: any[] = JSON.parse(localStorage.getItem('gis-dashboards') || '[]')
     if (!isPreview && id) {
-      const found = all.find(d => d.id === id)
-      if (found) { loadDashboard(id); setUpdatedAt(found.updatedAt) }
-      else setNotFound(true)
-    } else {
-      const found = all.find(d => d.id === dashboardId)
-      if (found) setUpdatedAt(found.updatedAt)
+      setNotFound(false)
+      loadDashboard(id)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id])
+
+  // Detect not-found after load completes
+  useEffect(() => {
+    if (!isPreview && id && !isLoading && dashboardId !== id) {
+      setNotFound(true)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoading])
 
   // ── Grid scaling ────────────────────────────────────────────────────────────
   // usedCols: how many columns the widgets actually occupy (e.g. 8 out of 12)
@@ -145,6 +148,9 @@ export default function DashboardViewPage() {
   ))
 
   const gridLayout = scaleLayout(widgets, colScale)
+
+  // ── Loading ─────────────────────────────────────────────────────────────────
+  if (!isPreview && isLoading) return <AppLoader />
 
   // ── Not Found ───────────────────────────────────────────────────────────────
   if (notFound) {

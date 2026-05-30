@@ -8,7 +8,7 @@ import logoUrl from "../../../assets/logo.svg";
 function BuilderTopBar() {
   const navigate = useNavigate();
   const { lang } = useTheme();
-  const { dashboardTitle, isSaved, setTitle, saveDashboard } =
+  const { dashboardTitle, isSaved, isSaving, setTitle, saveDashboard } =
     useBuilderStore();
   const [isEditing, setIsEditing] = useState(false);
   const [isPublished, setIsPublished] = useState(false);
@@ -221,43 +221,45 @@ function BuilderTopBar() {
           {/* Save button */}
           <button
             onClick={handleSave}
-            disabled={isSaved}
+            disabled={isSaved || isSaving}
             style={{
               display: "flex",
               alignItems: "center",
               gap: "6px",
               padding: "6px 14px",
-              background: isSaved ? "var(--page-bg)" : "var(--accent)",
-              border: `1px solid ${isSaved ? "var(--border)" : "var(--accent)"}`,
+              background: isSaved && !isSaving ? "var(--page-bg)" : "var(--accent)",
+              border: `1px solid ${isSaved && !isSaving ? "var(--border)" : "var(--accent)"}`,
               borderRadius: "var(--radius-md)",
               fontSize: "13px",
-              color: isSaved ? "var(--text-muted)" : "#fff",
-              cursor: isSaved ? "default" : "pointer",
+              color: isSaved && !isSaving ? "var(--text-muted)" : "#fff",
+              cursor: isSaved || isSaving ? "default" : "pointer",
               fontWeight: "500",
               transition: "all 0.15s",
-              opacity: isSaved ? 0.6 : 1,
+              opacity: isSaved && !isSaving ? 0.6 : 1,
             }}
             onMouseEnter={(e) => {
-              if (!isSaved)
+              if (!isSaved && !isSaving)
                 e.currentTarget.style.background = "var(--accent-hover)";
             }}
             onMouseLeave={(e) => {
-              if (!isSaved) e.currentTarget.style.background = "var(--accent)";
+              if (!isSaved && !isSaving)
+                e.currentTarget.style.background = "var(--accent)";
             }}
           >
-            <svg
-              width="13"
-              height="13"
-              viewBox="0 0 13 13"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-            >
-              <path d="M10 11H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h6l2 2v6a1 1 0 0 1-1 1z" />
-              <path d="M8 11V7H5v4" />
-              <path d="M5 2v3h4" />
-            </svg>
-            {isSaved ? t.saved : t.save}
+            {isSaving ? (
+              <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.5"
+                style={{ animation: 'spin 0.8s linear infinite' }}>
+                <circle cx="6.5" cy="6.5" r="5" strokeOpacity="0.3" />
+                <path d="M6.5 1.5a5 5 0 0 1 5 5" strokeLinecap="round" />
+              </svg>
+            ) : (
+              <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <path d="M10 11H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h6l2 2v6a1 1 0 0 1-1 1z" />
+                <path d="M8 11V7H5v4" />
+                <path d="M5 2v3h4" />
+              </svg>
+            )}
+            {isSaving ? (lang === "ar" ? "جاري الحفظ..." : "Saving...") : isSaved ? t.saved : t.save}
           </button>
 
           {/* Share button */}

@@ -5,23 +5,13 @@ import DashboardBuilderPage from './pages/DashboardBuilderPage'
 import DashboardViewPage from './pages/DashboardViewPage'
 import ComingSoonPage from './pages/ComingSoonPage'
 import LoginPage from './pages/LoginPage'
+import AppLoader from './components/AppLoader'
 import { useAuth } from './context/AuthContext'
 
 function App() {
-  const { user, loading } = useAuth()  // ← هنا الحل
+  const { user, loading } = useAuth()
 
-  if (loading) return (
-    <div style={{
-      height: '100vh',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-    }}>
-      <p style={{ color: 'var(--text-muted)', fontSize: '14px' }}>
-        Loading...
-      </p>
-    </div>
-  )
+  if (loading) return <AppLoader />
 
   return (
     <BrowserRouter>

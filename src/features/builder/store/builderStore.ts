@@ -141,6 +141,8 @@ import { BuilderState, Widget, GeoLayer, DashboardConfig } from '../types/builde
 import { supabase } from '../../../lib/supabase'
 
 interface BuilderStore extends BuilderState {
+  isLoading: boolean
+  isSaving: boolean
   setTitle: (title: string) => void
   setDashboardId: (id: string) => void
   addWidget: (widget: Widget) => void
@@ -166,6 +168,9 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
   dashboardId: crypto.randomUUID(),
   isSaved: true,
   zoomToLayerId: null,
+  isLoading: false,
+  isSaving: false,
+  updatedAt: null as string | null,
 
   setTitle: (title) =>
     set({ dashboardTitle: title, isSaved: false }),
@@ -233,49 +238,51 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
   zoomToLayer: (id) => set({ zoomToLayerId: id }),
 
   // ── Save to Supabase ──────────────────────────────────────────────────────
-saveDashboard: async () => {
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    console.error('No user logged in')
-    return
-  }
+  saveDashboard: async () => {
+    set({ isSaving: true })
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      console.error('No user logged in')
+      set({ isSaving: false })
+      return
+    }
 
-  const state = get()
+    const state = get()
 
-  const layersToSave = state.layers.map(l => ({
-    id:      l.id,
-    name:    l.name,
-    type:    l.type,
-    visible: l.visible,
-    color:   l.color,
-    fields:  l.fields ?? [],
-    // لا نحفظ data لأنها كبيرة
-  }))
+    const layersToSave = state.layers.map(l => ({
+      id:      l.id,
+      name:    l.name,
+      type:    l.type,
+      visible: l.visible,
+      color:   l.color,
+      fields:  l.fields ?? [],
+    }))
 
-  const payload = {
-    id:         state.dashboardId,
-    user_id:    user.id,
-    title:      state.dashboardTitle,
-    widgets:    state.widgets,
-    layers:     layersToSave,
-    is_public:  false,
-    thumbnail:  '🗺️',
-    updated_at: new Date().toISOString(),
-  }
+    const payload = {
+      id:         state.dashboardId,
+      user_id:    user.id,
+      title:      state.dashboardTitle,
+      widgets:    state.widgets,
+      layers:     layersToSave,
+      is_public:  false,
+      thumbnail:  '🗺️',
+      updated_at: new Date().toISOString(),
+    }
 
-  const { error } = await supabase
-    .from('dashboards')
-    .upsert(payload, { onConflict: 'id' })
+    const { error } = await supabase
+      .from('dashboards')
+      .upsert(payload, { onConflict: 'id' })
 
-  if (error) {
-    console.error('Save error:', error.message)
-  } else {
-    set({ isSaved: true })
-    console.log('Saved successfully!')
-  }
-},
+    if (error) {
+      console.error('Save error:', error.message)
+    } else {
+      set({ isSaved: true })
+    }
+    set({ isSaving: false })
+  },
   // ── Load from Supabase ────────────────────────────────────────────────────
   loadDashboard: async (id: string) => {
+    set({ isLoading: true })
     const { data, error } = await supabase
       .from('dashboards')
       .select('*')
@@ -284,16 +291,19 @@ saveDashboard: async () => {
 
     if (error || !data) {
       console.error('Load error:', error?.message)
+      set({ isLoading: false })
       return
     }
 
     set({
       dashboardId:    data.id,
       dashboardTitle: data.title,
-      widgets:        data.widgets  ?? [],
-      layers:         data.layers   ?? [],
+      widgets:        data.widgets    ?? [],
+      layers:         data.layers     ?? [],
       isSaved:        true,
       zoomToLayerId:  null,
+      isLoading:      false,
+      updatedAt:      data.updated_at ?? null,
     })
   },
 

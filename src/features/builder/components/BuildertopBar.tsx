@@ -9,6 +9,7 @@ function BuilderTopBar() {
   const navigate = useNavigate();
   const { lang } = useTheme();
   const dashboardTitle = useBuilderStore(s => s.dashboardTitle)
+  const dashboardId    = useBuilderStore(s => s.dashboardId)
   const isSaved        = useBuilderStore(s => s.isSaved)
   const isSaving       = useBuilderStore(s => s.isSaving)
   const setTitle       = useBuilderStore(s => s.setTitle)
@@ -363,7 +364,7 @@ function BuilderTopBar() {
 
       {/* Share Modal */}
       {showShare && (
-        <ShareModal dashboardId="preview" onClose={() => setShowShare(false)} />
+        <ShareModal dashboardId={dashboardId} onClose={() => setShowShare(false)} />
       )}
 
       {/* Unsaved Changes Modal */}

@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useBuilderStore } from '../features/builder/store/builderStore'
+import { useAuth } from '../context/AuthContext'
+import AccessDeniedPage from '../components/AccessDeniedPage'
 import BuilderTopBar from '../features/builder/components/BuildertopBar'
 import LayersPanel from '../features/builder/components/LayersPanel'
 import WidgetToolbar from '../features/builder/components/WidgetToolBar'
@@ -14,8 +16,10 @@ const TEMPLATE_IDS = new Set(['blank', 'urban', 'field', 'environmental', 'infra
 
 function DashboardBuilderPage() {
   const { id } = useParams()
-  const loadDashboard  = useBuilderStore(s => s.loadDashboard)
-  const storeIsLoading = useBuilderStore(s => s.isLoading)
+  const { user }        = useAuth()
+  const loadDashboard   = useBuilderStore(s => s.loadDashboard)
+  const storeIsLoading  = useBuilderStore(s => s.isLoading)
+  const ownerId         = useBuilderStore(s => s.ownerId)
 
   // Starts true so the very first render never shows stale store content
   const [isInitializing, setIsInitializing] = useState(true)
@@ -66,6 +70,11 @@ function DashboardBuilderPage() {
       initNewDashboard()
     }
   }, [id]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Non-owner trying to access someone else's builder
+  if (!isLoading && !isTemplateRoute && ownerId && user && ownerId !== user.id) {
+    return <AccessDeniedPage />
+  }
 
   return (
     <div style={{

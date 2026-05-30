@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import logoUrl from '../assets/logo.svg'
 import AppLoader from '../components/AppLoader'
+import AccessDeniedPage from '../components/AccessDeniedPage'
+import { useAuth } from '../context/AuthContext'
 import { Responsive, WidthProvider } from 'react-grid-layout/legacy'
 import type { LayoutItem } from 'react-grid-layout/legacy'
 import { useBuilderStore } from '../features/builder/store/builderStore'
@@ -66,16 +68,19 @@ function scaleLayout(widgets: Widget[], colScale: number): LayoutItem[] {
 export default function DashboardViewPage() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const { user } = useAuth()
   const { lang, toggleLang } = useTheme()
   const widgets        = useBuilderStore(s => s.widgets)
   const layers         = useBuilderStore(s => s.layers)
   const dashboardTitle = useBuilderStore(s => s.dashboardTitle)
   const dashboardId    = useBuilderStore(s => s.dashboardId)
-  const isLoading      = useBuilderStore(s => s.isLoading)
   const updatedAt      = useBuilderStore(s => s.updatedAt)
+  const ownerId        = useBuilderStore(s => s.ownerId)
+  const isPublic       = useBuilderStore(s => s.isPublic)
   const loadDashboard  = useBuilderStore(s => s.loadDashboard)
+  const isOwner        = !!user && user.id === ownerId
   const [showShare,  setShowShare]  = useState(false)
-  const [notFound,   setNotFound]   = useState(false)
+  const [status,     setStatus]     = useState<'loading'|'found'|'notfound'|'denied'>('loading')
   const [cardHover,  setCardHover]  = useState<string | null>(null)
   const [viewportH,  setViewportH]  = useState(window.innerHeight)
 
@@ -121,22 +126,29 @@ export default function DashboardViewPage() {
     },
   }[lang]
 
-  // Load dashboard data from Supabase
+  // Load dashboard from Supabase and detect not-found / access-denied
   useEffect(() => {
     if (!isPreview && id) {
-      setNotFound(false)
-      loadDashboard(id)
+      setStatus('loading')
+      loadDashboard(id).then(() => {
+        const state = useBuilderStore.getState()
+        if (state.dashboardId !== id) {
+          // RLS blocked the read OR dashboard truly doesn't exist.
+          // If user is logged in → access denied (private dashboard).
+          // If anonymous → not found (needs to log in first).
+          setStatus('denied')
+        } else if (!state.isPublic && user?.id !== state.ownerId) {
+          // Loaded but private and viewer is not the owner
+          setStatus('denied')
+        } else {
+          setStatus('found')
+        }
+      })
+    } else {
+      setStatus('found')
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id])
-
-  // Detect not-found after load completes
-  useEffect(() => {
-    if (!isPreview && id && !isLoading && dashboardId !== id) {
-      setNotFound(true)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoading])
 
   // ── Grid scaling ────────────────────────────────────────────────────────────
   // usedCols: how many columns the widgets actually occupy (e.g. 8 out of 12)
@@ -156,15 +168,18 @@ export default function DashboardViewPage() {
   const gridLayout = scaleLayout(widgets, colScale)
 
   // ── Loading ─────────────────────────────────────────────────────────────────
-  if (!isPreview && isLoading) return <AppLoader />
+  if (status === 'loading') return <AppLoader />
+
+  // ── Access Denied ────────────────────────────────────────────────────────────
+  if (status === 'denied') return <AccessDeniedPage />
 
   // ── Not Found ───────────────────────────────────────────────────────────────
-  if (notFound) {
+  if (status === 'notfound') {
     return (
       <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--page-bg)' }}>
         <TopBar
           title="Dashboard" isPreview={false} dashboardId={dashboardId}
-          widgetCount={0} layerCount={0} updatedAt={null}
+          widgetCount={0} layerCount={0} updatedAt={null} isOwner={false}
           labels={labels} lang={lang} toggleLang={toggleLang}
           navigate={navigate} onShare={() => {}}        />
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '16px' }}>
@@ -188,6 +203,7 @@ export default function DashboardViewPage() {
       <TopBar
         title={dashboardTitle} isPreview={isPreview} dashboardId={dashboardId}
         widgetCount={widgets.length} layerCount={layers.length} updatedAt={updatedAt}
+        isOwner={isOwner}
         labels={labels} lang={lang} toggleLang={toggleLang}
         navigate={navigate} onShare={() => setShowShare(true)}      />
 
@@ -217,10 +233,12 @@ export default function DashboardViewPage() {
               <p style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-primary)', margin: '0 0 6px' }}>{labels.noWidgetsTitle}</p>
               <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: 0 }}>{labels.noWidgetsBody}</p>
             </div>
-            <button onClick={() => navigate(`/builder/${dashboardId}`)} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 18px', background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: 'var(--radius-md)', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }}>
-              <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M9 2l2 2-6 6H3V8l6-6z"/></svg>
-              {labels.openEditor}
-            </button>
+            {isOwner && (
+              <button onClick={() => navigate(`/builder/${dashboardId}`)} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 18px', background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: 'var(--radius-md)', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }}>
+                <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M9 2l2 2-6 6H3V8l6-6z"/></svg>
+                {labels.openEditor}
+              </button>
+            )}
           </div>
         ) : (
           <ResponsiveGridLayout
@@ -278,13 +296,13 @@ export default function DashboardViewPage() {
 
 // ── Top Bar ───────────────────────────────────────────────────────────────────
 interface TopBarProps {
-  title: string; isPreview: boolean; dashboardId: string
+  title: string; isPreview: boolean; dashboardId: string; isOwner: boolean
   widgetCount: number; layerCount: number; updatedAt: string | null
   labels: any; lang: string; toggleLang: () => void
   navigate: (to: string) => void; onShare: () => void
 }
 
-function TopBar({ title, isPreview, dashboardId, widgetCount, layerCount, updatedAt, labels, lang, toggleLang, navigate, onShare }: TopBarProps) {
+function TopBar({ title, isPreview, dashboardId, isOwner, widgetCount, layerCount, updatedAt, labels, lang, toggleLang, navigate, onShare }: TopBarProps) {
   const [editHover,  setEditHover]  = useState(false)
   const [shareHover, setShareHover] = useState(false)
   const [backHover,  setBackHover]  = useState(false)
@@ -354,15 +372,17 @@ function TopBar({ title, isPreview, dashboardId, widgetCount, layerCount, update
           {labels.share}
         </button>
 
-        <button
-          onClick={() => navigate(`/builder/${dashboardId}`)}
-          onMouseEnter={() => setEditHover(true)}
-          onMouseLeave={() => setEditHover(false)}
-          style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '7px 16px', background: editHover ? 'var(--accent-hover)' : 'var(--accent)', border: 'none', borderRadius: 'var(--radius-md)', fontSize: '13px', fontWeight: '600', color: '#fff', cursor: 'pointer', transition: 'background 0.15s', boxShadow: '0 1px 3px rgba(14,165,233,0.3)' }}
-        >
-          <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M9 2l2 2-6 6H3V8l6-6z"/></svg>
-          {labels.edit}
-        </button>
+        {isOwner && (
+          <button
+            onClick={() => navigate(`/builder/${dashboardId}`)}
+            onMouseEnter={() => setEditHover(true)}
+            onMouseLeave={() => setEditHover(false)}
+            style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '7px 16px', background: editHover ? 'var(--accent-hover)' : 'var(--accent)', border: 'none', borderRadius: 'var(--radius-md)', fontSize: '13px', fontWeight: '600', color: '#fff', cursor: 'pointer', transition: 'background 0.15s', boxShadow: '0 1px 3px rgba(14,165,233,0.3)' }}
+          >
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M9 2l2 2-6 6H3V8l6-6z"/></svg>
+            {labels.edit}
+          </button>
+        )}
 
       </div>
     </header>

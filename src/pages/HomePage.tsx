@@ -202,6 +202,7 @@
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useTheme } from "../context/ThemeContext";
+import { useAuth } from "../context/AuthContext";
 import { supabase } from "../lib/supabase";
 import Navbar from "../features/dashboard/components/Navbar";
 import DashboardCard from "../features/dashboard/components/DashboardCard";
@@ -238,23 +239,26 @@ function timeAgo(dateStr: string, lang: 'en' | 'ar'): string {
 function HomePage() {
   const navigate = useNavigate();
   const { lang } = useTheme();
+  const { user } = useAuth();
   const [dashboards, setDashboards] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [shareModalId, setShareModalId] = useState<string | null>(null);
   const t = labels[lang];
 
-  // ── fetch from Supabase ──────────────────────────────────────────────────
+  // ── fetch only THIS user's dashboards from Supabase ──────────────────────
   useEffect(() => {
+    if (!user) return
     async function fetchDashboards() {
       const { data, error } = await supabase
         .from('dashboards')
         .select('*')
+        .eq('user_id', user!.id)
         .order('updated_at', { ascending: false })
       if (!error && data) setDashboards(data)
       setLoading(false)
     }
     fetchDashboards()
-  }, [])
+  }, [user])
 
   // ── delete from Supabase ─────────────────────────────────────────────────
   async function handleDelete(id: string) {

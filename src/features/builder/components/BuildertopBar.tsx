@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useTheme } from "../../../context/ThemeContext";
 import { useBuilderStore } from "../store/builderStore";
 import ShareModal from "../../dashboard/components/ShareModal";
+import logoUrl from "../../../assets/logo.svg";
 
 function BuilderTopBar() {
   const navigate = useNavigate();
@@ -34,8 +35,8 @@ function BuilderTopBar() {
     },
   }[lang];
 
-  function handleSave() {
-    saveDashboard();
+  async function handleSave() {
+    await saveDashboard();
   }
 
   function guardedNav(to: string) {
@@ -101,23 +102,7 @@ function BuilderTopBar() {
           </button>
 
           {/* Logo */}
-          <div
-            style={{
-              width: "28px",
-              height: "28px",
-              background: "var(--accent)",
-              borderRadius: "var(--radius-md)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              color: "#fff",
-              fontSize: "14px",
-              fontWeight: "600",
-              flexShrink: 0,
-            }}
-          >
-            G
-          </div>
+          <img src={logoUrl} alt="logo" style={{ width: "28px", height: "28px", borderRadius: "var(--radius-md)", flexShrink: 0 }} />
 
           {/* Editable Title */}
           {isEditing ? (
@@ -423,8 +408,8 @@ function BuilderTopBar() {
 
             <div style={{ display: "flex", gap: "8px" }}>
               <button
-                onClick={() => {
-                  saveDashboard();
+                onClick={async () => {
+                  await saveDashboard();
                   navigate(pendingNav);
                 }}
                 style={{

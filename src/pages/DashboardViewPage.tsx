@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import logoUrl from '../assets/logo.svg'
 import { Responsive, WidthProvider } from 'react-grid-layout/legacy'
 import type { LayoutItem } from 'react-grid-layout/legacy'
 import { useBuilderStore } from '../features/builder/store/builderStore'
@@ -293,7 +294,7 @@ function TopBar({ title, isPreview, dashboardId, widgetCount, layerCount, update
         </button>
 
         <div onClick={() => navigate('/')} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', marginRight: '16px' }}>
-          <div style={{ width: '32px', height: '32px', background: 'var(--accent)', borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '15px', fontWeight: '700', flexShrink: 0 }}>G</div>
+          <img src={logoUrl} alt="logo" style={{ width: '32px', height: '32px', borderRadius: 'var(--radius-md)', flexShrink: 0 }} />
           <span style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-primary)', whiteSpace: 'nowrap' }}>{labels.brand}</span>
         </div>
 

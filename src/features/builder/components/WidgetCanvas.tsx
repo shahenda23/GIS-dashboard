@@ -156,6 +156,7 @@ function WidgetCanvas() {
           rowHeight={80}
           onLayoutChange={handleLayoutChange}
           draggableHandle=".widget-drag-handle"
+          draggableCancel=".widget-close-btn"
           style={{ minHeight: '100%', padding: '16px' }}
         >
           {widgets.map(widget => (
@@ -216,6 +217,7 @@ function WidgetCanvas() {
                 </div>
 
                 <button
+                  className="widget-close-btn"
                   onClick={e => { e.stopPropagation(); removeWidget(widget.id) }}
                   style={{
                     background: 'transparent',

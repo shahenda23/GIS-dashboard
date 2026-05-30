@@ -1,10 +1,6 @@
 import { useEffect, useRef } from 'react'
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
-// @ts-ignore
-import MaplibreWorker from 'maplibre-gl/dist/maplibre-gl-csp-worker'
-// Fix for CRA production build
-;(maplibregl as any).workerClass = MaplibreWorker
 import { MapConfig } from '../../types/builder.types'
 import { useBuilderStore } from '../../store/builderStore'
 import { getLayerHandler } from './map/layerRegistry'

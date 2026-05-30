@@ -8,7 +8,7 @@ interface LayerSelectProps {
 }
 
 function LayerSelect({ value, onChange, label }: LayerSelectProps) {
-  const { layers } = useBuilderStore()
+  const layers = useBuilderStore(s => s.layers)
   const { lang } = useTheme()
 
   const placeholder = lang === 'en' ? 'Select a layer...' : 'اختر طبقة...'

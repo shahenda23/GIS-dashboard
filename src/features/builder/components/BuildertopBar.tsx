@@ -8,8 +8,11 @@ import logoUrl from "../../../assets/logo.svg";
 function BuilderTopBar() {
   const navigate = useNavigate();
   const { lang } = useTheme();
-  const { dashboardTitle, isSaved, isSaving, setTitle, saveDashboard } =
-    useBuilderStore();
+  const dashboardTitle = useBuilderStore(s => s.dashboardTitle)
+  const isSaved        = useBuilderStore(s => s.isSaved)
+  const isSaving       = useBuilderStore(s => s.isSaving)
+  const setTitle       = useBuilderStore(s => s.setTitle)
+  const saveDashboard  = useBuilderStore(s => s.saveDashboard)
   const [isEditing, setIsEditing] = useState(false);
   const [isPublished, setIsPublished] = useState(false);
   const [showShare, setShowShare] = useState(false);

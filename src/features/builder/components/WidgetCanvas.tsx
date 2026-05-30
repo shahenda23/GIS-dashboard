@@ -39,13 +39,11 @@ function renderWidgetContent(widget: Widget) {
 
 function WidgetCanvas() {
   const { lang } = useTheme()
-  const {
-    widgets,
-    selectedWidgetId,
-    selectWidget,
-    removeWidget,
-    updateLayout,
-  } = useBuilderStore()
+  const widgets         = useBuilderStore(s => s.widgets)
+  const selectedWidgetId = useBuilderStore(s => s.selectedWidgetId)
+  const selectWidget    = useBuilderStore(s => s.selectWidget)
+  const removeWidget    = useBuilderStore(s => s.removeWidget)
+  const updateLayout    = useBuilderStore(s => s.updateLayout)
 
   const t = {
     en: {

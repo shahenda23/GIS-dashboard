@@ -14,7 +14,7 @@ interface FilterSettingsProps {
 
 function FilterSettings({ widgetId, config }: FilterSettingsProps) {
   const { lang } = useTheme()
-  const { widgets } = useBuilderStore()
+  const widgets = useBuilderStore(s => s.widgets)
   const [activeTab, setActiveTab] = useState('data')
 
   const tabs = {

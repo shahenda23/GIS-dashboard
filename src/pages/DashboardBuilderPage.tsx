@@ -1,57 +1,4 @@
-// import { useEffect } from 'react'
-// import { useParams } from 'react-router-dom'
-// import { useBuilderStore } from '../features/builder/store/builderStore'
-// import BuilderTopBar from '../features/builder/components/BuildertopBar'
-// import LayersPanel from '../features/builder/components/LayersPanel'
-// import WidgetToolbar from '../features/builder/components/WidgetToolBar'
-// import WidgetCanvas from '../features/builder/components/WidgetCanvas'
-// import SettingsPanel from '../features/builder/components/settings/SettingsPanel'
-
-// function DashboardBuilderPage() {
-//   const { id } = useParams()
-//   const { loadDashboard, setDashboardId } = useBuilderStore()
-
-//   useEffect(() => {
-//     if (id && id !== 'blank') {
-//       // Only reload if switching to a different dashboard
-//       if (useBuilderStore.getState().dashboardId !== id) {
-//         loadDashboard(id)
-//       }
-//     } else {
-//       useBuilderStore.setState({
-//         widgets: [],
-//         layers: [],
-//         selectedWidgetId: null,
-//         dashboardTitle: 'Untitled Dashboard',
-//         dashboardId: `dashboard-${Date.now()}`,
-//         isSaved: true,
-//         zoomToLayerId: null,
-//       })
-//     }
-//   }, [id])
-
-//   return (
-//     <div style={{
-//       height: '100vh',
-//       display: 'flex',
-//       flexDirection: 'column',
-//       overflow: 'hidden',
-//       background: 'var(--page-bg)',
-//     }}>
-//       <BuilderTopBar />
-//       <WidgetToolbar />
-//       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-//         <LayersPanel />
-//         <WidgetCanvas />
-//         <SettingsPanel />
-//       </div>
-//     </div>
-//   )
-// }
-
-// export default DashboardBuilderPage
-
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useBuilderStore } from '../features/builder/store/builderStore'
 import BuilderTopBar from '../features/builder/components/BuildertopBar'
@@ -59,31 +6,44 @@ import LayersPanel from '../features/builder/components/LayersPanel'
 import WidgetToolbar from '../features/builder/components/WidgetToolBar'
 import WidgetCanvas from '../features/builder/components/WidgetCanvas'
 import SettingsPanel from '../features/builder/components/settings/SettingsPanel'
+import AppLoader from '../components/AppLoader'
 import { supabase } from '../lib/supabase'
+
+// IDs that come from the template picker — not real Supabase dashboard IDs
+const TEMPLATE_IDS = new Set(['blank', 'urban', 'field', 'environmental', 'infrastructure'])
 
 function DashboardBuilderPage() {
   const { id } = useParams()
   const { loadDashboard } = useBuilderStore()
+  const storeIsLoading   = useBuilderStore(s => s.isLoading)
+
+  // Starts true so the very first render never shows stale store content
+  const [isInitializing, setIsInitializing] = useState(true)
+
+  const isTemplateRoute = !id || TEMPLATE_IDS.has(id)
+  const isLoading = isInitializing || storeIsLoading
 
   useEffect(() => {
-    if (id && id !== 'blank') {
-    if (id && id !== 'blank') {
-      // Only reload if switching to a different dashboard
+    setIsInitializing(true)
+
+    if (!isTemplateRoute && id) {
+      // Real dashboard UUID — load from Supabase
       if (useBuilderStore.getState().dashboardId !== id) {
-        loadDashboard(id)
+        useBuilderStore.setState({
+          widgets:          [],
+          layers:           [],
+          selectedWidgetId: null,
+          dashboardTitle:   '',
+          dashboardId:      id,
+          isSaved:          true,
+          zoomToLayerId:    null,
+        })
+        loadDashboard(id)  // sets store.isLoading true → false when done
       }
+      // store.isLoading covers the rest; local init done
+      setIsInitializing(false)
     } else {
-      useBuilderStore.setState({
-        widgets: [],
-        layers: [],
-        selectedWidgetId: null,
-        dashboardTitle: 'Untitled Dashboard',
-        dashboardId: `dashboard-${Date.now()}`,
-        isSaved: true,
-        zoomToLayerId: null,
-      })
-    }
-    } else {
+      // Template or blank — create a fresh dashboard
       async function initNewDashboard() {
         const { count } = await supabase
           .from('dashboards')
@@ -101,10 +61,11 @@ function DashboardBuilderPage() {
           isSaved:          true,
           zoomToLayerId:    null,
         })
+        setIsInitializing(false)
       }
       initNewDashboard()
     }
-  }, [id])
+  }, [id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div style={{
@@ -116,11 +77,11 @@ function DashboardBuilderPage() {
       direction: 'ltr',
     }}>
       <BuilderTopBar />
-      <WidgetToolbar />
+      {!isLoading && <WidgetToolbar />}
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-        <LayersPanel />
-        <WidgetCanvas />
-        <SettingsPanel />
+        {!isLoading && <LayersPanel />}
+        {isLoading ? <AppLoader /> : <WidgetCanvas />}
+        {!isLoading && <SettingsPanel />}
       </div>
     </div>
   )

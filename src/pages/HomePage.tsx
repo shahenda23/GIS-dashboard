@@ -207,6 +207,7 @@ import Navbar from "../features/dashboard/components/Navbar";
 import DashboardCard from "../features/dashboard/components/DashboardCard";
 import ShareModal from "../features/dashboard/components/ShareModal";
 import Footer from '../features/dashboard/components/Footer'
+import AppLoader from '../components/AppLoader'
 
 const labels = {
   en: {
@@ -238,19 +239,21 @@ function HomePage() {
   const navigate = useNavigate();
   const { lang } = useTheme();
   const [dashboards, setDashboards] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
   const [shareModalId, setShareModalId] = useState<string | null>(null);
   const t = labels[lang];
 
   // ── fetch from Supabase ──────────────────────────────────────────────────
   useEffect(() => {
-    async function fetch() {
+    async function fetchDashboards() {
       const { data, error } = await supabase
         .from('dashboards')
         .select('*')
         .order('updated_at', { ascending: false })
       if (!error && data) setDashboards(data)
+      setLoading(false)
     }
-    fetch()
+    fetchDashboards()
   }, [])
 
   // ── delete from Supabase ─────────────────────────────────────────────────
@@ -258,6 +261,8 @@ function HomePage() {
     await supabase.from('dashboards').delete().eq('id', id)
     setDashboards(prev => prev.filter(d => d.id !== id))
   }
+
+  if (loading) return <AppLoader />
 
   return (
     <div style={{ minHeight: "100vh", background: "var(--page-bg)", display: "flex", flexDirection: "column" }}>

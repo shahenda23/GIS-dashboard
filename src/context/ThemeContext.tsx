@@ -10,11 +10,18 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | null>(null)
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [lang, setLang] = useState<Lang>('en')
+  const [lang, setLang] = useState<Lang>(() => {
+    const saved = (localStorage.getItem('gis-lang') as Lang) ?? 'en'
+    // Apply immediately so the first render already has the right dir
+    document.documentElement.setAttribute('dir', saved === 'ar' ? 'rtl' : 'ltr')
+    document.documentElement.setAttribute('lang', saved)
+    return saved
+  })
 
   function toggleLang() {
     const next = lang === 'en' ? 'ar' : 'en'
     setLang(next)
+    localStorage.setItem('gis-lang', next)
     document.documentElement.setAttribute('dir', next === 'ar' ? 'rtl' : 'ltr')
     document.documentElement.setAttribute('lang', next)
   }

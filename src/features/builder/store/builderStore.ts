@@ -144,6 +144,7 @@ interface BuilderStore extends BuilderState {
   isLoading: boolean
   isSaving: boolean
   isPublic: boolean
+  ownerId: string | null
   setTitle: (title: string) => void
   setDashboardId: (id: string) => void
   addWidget: (widget: Widget) => void
@@ -173,6 +174,7 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
   isLoading: false,
   isSaving: false,
   isPublic: false,
+  ownerId: null,
   updatedAt: null as string | null,
 
   setTitle: (title) =>
@@ -306,6 +308,7 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
       widgets:        data.widgets    ?? [],
       layers:         data.layers     ?? [],
       isPublic:       data.is_public  ?? false,
+      ownerId:        data.user_id    ?? null,
       isSaved:        true,
       zoomToLayerId:  null,
       isLoading:      false,

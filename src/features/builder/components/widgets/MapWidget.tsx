@@ -1,14 +1,10 @@
 import { useEffect, useRef } from 'react'
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
-import { Protocol } from 'pmtiles'
 import { MapConfig } from '../../types/builder.types'
 import { useBuilderStore } from '../../store/builderStore'
 import { getLayerHandler } from './map/layerRegistry'
 import { getGeometryType } from './map/handlers/GeoJsonHandler'
-
-const protocol = new Protocol()
-maplibregl.addProtocol('pmtiles', protocol.tile.bind(protocol))
 
 interface MapWidgetProps {
   widgetId: string
@@ -16,10 +12,10 @@ interface MapWidgetProps {
 }
 
 export const MAP_STYLES = [
-  { value: 'https://tiles.openfreemap.org/styles/liberty',  label: 'Liberty' },
-  { value: 'https://tiles.openfreemap.org/styles/bright',   label: 'Bright' },
-  { value: 'https://tiles.openfreemap.org/styles/positron', label: 'Positron' },
-  { value: 'https://tiles.openfreemap.org/styles/fiord',    label: 'Fiord (Dark)' },
+  { value: 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json',     label: 'Voyager' },
+  { value: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',    label: 'Positron' },
+  { value: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json', label: 'Dark Matter' },
+  { value: 'https://basemaps.cartocdn.com/gl/voyager-nolabels-gl-style/style.json', label: 'Voyager (No Labels)' },
 ]
 
 // ── BBox from GeoJSON ─────────────────────────────────────────────────────────

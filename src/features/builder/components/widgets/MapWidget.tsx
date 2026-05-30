@@ -12,10 +12,22 @@ interface MapWidgetProps {
 }
 
 export const MAP_STYLES = [
-  { value: 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json',     label: 'Voyager' },
-  { value: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',    label: 'Positron' },
-  { value: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json', label: 'Dark Matter' },
-  { value: 'https://basemaps.cartocdn.com/gl/voyager-nolabels-gl-style/style.json', label: 'Voyager (No Labels)' },
+  { 
+    value: 'https://demotiles.maplibre.org/style.json', 
+    label: 'Default' 
+  },
+  { 
+    value: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json', 
+    label: 'Positron' 
+  },
+  { 
+    value: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json', 
+    label: 'Dark Matter' 
+  },
+  { 
+    value: 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json', 
+    label: 'Voyager' 
+  },
 ]
 
 // ── BBox from GeoJSON ─────────────────────────────────────────────────────────

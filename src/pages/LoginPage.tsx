@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useTheme } from '../context/ThemeContext'
+import logoUrl from '../assets/logo.svg'
 
 function LoginPage() {
   const { lang } = useTheme()
@@ -96,20 +97,7 @@ function LoginPage() {
           gap: '10px',
           marginBottom: '32px',
         }}>
-          <div style={{
-            width: '32px',
-            height: '32px',
-            background: 'var(--accent)',
-            borderRadius: 'var(--radius-md)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#fff',
-            fontSize: '16px',
-            fontWeight: '700',
-          }}>
-            G
-          </div>
+          <img src={logoUrl} alt="logo" style={{ width: '32px', height: '32px', borderRadius: 'var(--radius-md)' }} />
           <span style={{
             fontSize: '15px',
             fontWeight: '600',

@@ -216,7 +216,8 @@ function MapWidget({ widgetId, config }: MapWidgetProps) {
   const showPopupRef  = useRef(config.showPopup  !== false)
   const configRef     = useRef(config)
 
-  const { layers: storeLayers, zoomToLayerId } = useBuilderStore()
+  const storeLayers   = useBuilderStore(s => s.layers)
+  const zoomToLayerId = useBuilderStore(s => s.zoomToLayerId)
 
   // keep refs in sync every render
   showLegendRef.current = config.showLegend !== false

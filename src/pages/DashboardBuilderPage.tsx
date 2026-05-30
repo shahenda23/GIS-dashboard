@@ -14,8 +14,8 @@ const TEMPLATE_IDS = new Set(['blank', 'urban', 'field', 'environmental', 'infra
 
 function DashboardBuilderPage() {
   const { id } = useParams()
-  const { loadDashboard } = useBuilderStore()
-  const storeIsLoading   = useBuilderStore(s => s.isLoading)
+  const loadDashboard  = useBuilderStore(s => s.loadDashboard)
+  const storeIsLoading = useBuilderStore(s => s.isLoading)
 
   // Starts true so the very first render never shows stale store content
   const [isInitializing, setIsInitializing] = useState(true)

@@ -36,7 +36,7 @@ function addPopup(
     if (!showPopupRef.current) return
     if (!e.features?.length) return
 
-    const cfg = getConfig()
+    const cfg   = getConfig()
     const props = e.features[0].properties ?? {}
 
     const fields = cfg.popupFields?.length
@@ -142,9 +142,17 @@ export class GeoJsonHandler implements LayerHandler {
   }
 
   remove(map: maplibregl.Map, layerId: string) {
+    const layerName = `${layerId}-layer`  // ← متعرف هنا صح
+
+    // remove event listeners first
+    try { map.off('click',      layerName, () => {}) } catch {}
+    try { map.off('mouseenter', layerName, () => {}) } catch {}
+    try { map.off('mouseleave', layerName, () => {}) } catch {}
+
+    // remove layers then source
     try { if (map.getLayer(`${layerId}-outline`)) map.removeLayer(`${layerId}-outline`) } catch {}
-    try { if (map.getLayer(`${layerId}-layer`))   map.removeLayer(`${layerId}-layer`)   } catch {}
-    try { if (map.getSource(layerId))              map.removeSource(layerId)             } catch {}
+    try { if (map.getLayer(layerName))            map.removeLayer(layerName)            } catch {}
+    try { if (map.getSource(layerId))             map.removeSource(layerId)             } catch {}
   }
 
   setVisibility(map: maplibregl.Map, layerId: string, visible: boolean) {
@@ -160,7 +168,7 @@ export class GeoJsonHandler implements LayerHandler {
       if (geoType === 'Point' || geoType === 'MultiPoint') {
         map.setPaintProperty(`${layer.id}-layer`, 'circle-color', layer.color)
       } else if (geoType === 'Polygon' || geoType === 'MultiPolygon') {
-        map.setPaintProperty(`${layer.id}-layer`, 'fill-color', layer.color)
+        map.setPaintProperty(`${layer.id}-layer`, 'fill-color',  layer.color)
         if (map.getLayer(`${layer.id}-outline`))
           map.setPaintProperty(`${layer.id}-outline`, 'line-color', layer.color)
       } else {

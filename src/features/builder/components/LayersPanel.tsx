@@ -57,7 +57,10 @@ function csvToGeoJSON(text: string): { data: any; fields: string[] } {
 
 function LayersPanel() {
   const { lang } = useTheme()
-  const { layers, addLayer, toggleLayer, zoomToLayer } = useBuilderStore()
+  const layers      = useBuilderStore(s => s.layers)
+  const addLayer    = useBuilderStore(s => s.addLayer)
+  const toggleLayer = useBuilderStore(s => s.toggleLayer)
+  const zoomToLayer = useBuilderStore(s => s.zoomToLayer)
   const [dotsMenuId, setDotsMenuId] = useState<string | null>(null)
 
   const t = {

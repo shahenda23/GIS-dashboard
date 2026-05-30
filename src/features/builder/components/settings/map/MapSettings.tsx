@@ -24,7 +24,7 @@ function MapSettings({ widgetId, config }: MapSettingsProps) {
   const { lang } = useTheme()
   const [activeTab, setActiveTab] = useState('data')
 
-  const { layers } = useBuilderStore()
+  const layers = useBuilderStore(s => s.layers)
   const selectedLayer = layers.find(l => l.id === config.layerId)
   const availableFields = selectedLayer?.fields ?? []
 

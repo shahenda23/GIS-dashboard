@@ -14,8 +14,10 @@ import FilterSettings from './filter/FilterSettings'
 
 function SettingsPanel() {
   const { lang } = useTheme()
-  const { widgets, selectedWidgetId, selectWidget, removeWidget } = useBuilderStore()
-  const selectedWidget = widgets.find(w => w.id === selectedWidgetId)
+  const selectedWidgetId = useBuilderStore(s => s.selectedWidgetId)
+  const selectedWidget   = useBuilderStore(s => s.widgets.find(w => w.id === s.selectedWidgetId))
+  const selectWidget     = useBuilderStore(s => s.selectWidget)
+  const removeWidget     = useBuilderStore(s => s.removeWidget)
 
   const t = {
     en: { title: 'Widget Settings', noSelection: 'Select a widget to edit its settings', delete: 'Delete Widget' },

@@ -159,13 +159,13 @@ function MapSettings({ widgetId, config }: MapSettingsProps) {
           />
           <ToggleSwitch
             label={t.legend}
-            value={config.showLegend ?? false}
+            value={config.showLegend ?? true}
             onChange={v => updateConfig({ showLegend: v })}
             description={t.legendDesc}
           />
           <ToggleSwitch
             label={t.popup}
-            value={config.showPopup ?? false}
+            value={config.showPopup ?? true}
             onChange={v => updateConfig({ showPopup: v })}
             description={t.popupDesc}
           />

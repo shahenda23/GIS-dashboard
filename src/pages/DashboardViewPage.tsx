@@ -330,21 +330,13 @@ function TopBar({ title, isPreview, dashboardId, isOwner, widgetCount, layerCoun
 
         <div style={{ width: '1px', height: '22px', background: 'var(--border)', marginRight: '16px', flexShrink: 0 }} />
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)', lineHeight: 1 }}>{title}</span>
-            {isPreview && (
-              <span style={{ fontSize: '10px', fontWeight: '700', color: '#d97706', background: '#fef3c7', border: '1px solid #fde68a', borderRadius: '10px', padding: '1px 8px', letterSpacing: '0.3px' }}>
-                {labels.previewMode}
-              </span>
-            )}
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', color: 'var(--text-muted)' }}>
-            {updatedAt && <span>{labels.updated} {relativeTime(updatedAt)}</span>}
-            {updatedAt && <span style={{ opacity: 0.4 }}>·</span>}
-            <span>{labels.widgets(widgetCount)}</span>
-            {layerCount > 0 && <><span style={{ opacity: 0.4 }}>·</span><span>{labels.layers(layerCount)}</span></>}
-          </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)', lineHeight: 1 }}>{title}</span>
+          {isPreview && (
+            <span style={{ fontSize: '10px', fontWeight: '700', color: '#d97706', background: '#fef3c7', border: '1px solid #fde68a', borderRadius: '10px', padding: '1px 8px', letterSpacing: '0.3px' }}>
+              {labels.previewMode}
+            </span>
+          )}
         </div>
       </div>
 

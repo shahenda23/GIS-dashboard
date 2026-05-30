@@ -263,6 +263,7 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
       visible: l.visible,
       color:   l.color,
       fields:  l.fields ?? [],
+      data:    l.data ?? null,
     }))
 
     const payload = {

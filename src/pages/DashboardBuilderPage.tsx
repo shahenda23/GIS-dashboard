@@ -71,8 +71,10 @@ function DashboardBuilderPage() {
     }
   }, [id]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Non-owner trying to access someone else's builder
-  if (!isLoading && !isTemplateRoute && ownerId && user && ownerId !== user.id) {
+  // Non-owner or failed load (RLS blocked) → deny access
+  // ownerId null after load = RLS blocked the read (private dashboard of another user)
+  // ownerId set but !== user.id = public dashboard of another user
+  if (!isLoading && !isTemplateRoute && (!ownerId || (user && ownerId !== user.id))) {
     return <AccessDeniedPage />
   }
 

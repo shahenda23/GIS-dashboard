@@ -1,6 +1,12 @@
 import { useEffect, useRef } from 'react'
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
+
+// CRA bundles the MapLibre worker incorrectly in production builds.
+// Load the worker from CDN to fix blank maps on Vercel/Netlify.
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+maplibregl.workerUrl = `https://unpkg.com/maplibre-gl@${maplibregl.version}/dist/maplibre-gl-csp-worker.js`
 import { MapConfig } from '../../types/builder.types'
 import { useBuilderStore } from '../../store/builderStore'
 import { getLayerHandler } from './map/layerRegistry'

@@ -6,6 +6,7 @@ import DashboardViewPage from './pages/DashboardViewPage'
 import ComingSoonPage from './pages/ComingSoonPage'
 import LoginPage from './pages/LoginPage'
 import AppLoader from './components/AppLoader'
+import NotFoundPage from './components/NotFoundPage'
 import { useAuth } from './context/AuthContext'
 
 function App() {
@@ -29,9 +30,11 @@ function App() {
           user ? <DashboardBuilderPage /> : <Navigate to="/login" replace />
         } />
         <Route path="/dashboard/:id" element={<DashboardViewPage />} />
-        <Route path="/docs"      element={<ComingSoonPage />} />
-        <Route path="/api"       element={<ComingSoonPage />} />
-        <Route path="/community" element={<ComingSoonPage />} />
+        <Route path="/docs"        element={<ComingSoonPage />} />
+        <Route path="/api"         element={<ComingSoonPage />} />
+        <Route path="/community"   element={<ComingSoonPage />} />
+        <Route path="/help-center" element={<ComingSoonPage />} />
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </BrowserRouter>
   )

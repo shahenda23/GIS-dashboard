@@ -153,14 +153,19 @@ function LayersPanel() {
 
   return (
     <aside style={{
-      width: '240px',
-      background: 'var(--surface)',
-      borderRight: '1px solid var(--border)',
-      display: 'flex',
-      flexDirection: 'column',
-      flexShrink: 0,
-      position: 'relative',
-    }}>
+      width:                '240px',
+      background:           'rgba(255,255,255,0.80)',
+      backdropFilter:       'blur(16px)',
+      WebkitBackdropFilter: 'blur(16px)',
+      border:               '1px solid rgba(255,255,255,0.88)',
+      borderRadius:         '12px',
+      boxShadow:            '0 4px 24px rgba(0,0,0,0.07), 0 1px 4px rgba(0,0,0,0.04)',
+      display:              'flex',
+      flexDirection:        'column',
+      flexShrink:           0,
+      position:             'relative',
+      marginBottom:         '8px',
+    } as React.CSSProperties}>
 
       {/* Header */}
       <div style={{

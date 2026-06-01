@@ -48,11 +48,11 @@ function WidgetCanvas() {
   const t = {
     en: {
       empty: 'Add your first widget',
-      emptySub: 'Use the toolbar above to add a map, chart, or table',
+      emptySub: 'Use the dock below to add a map, chart, or table',
     },
     ar: {
       empty: 'أضف أول ودجت',
-      emptySub: 'استخدم شريط الأدوات لإضافة خريطة أو مخطط أو جدول',
+      emptySub: 'استخدم شريط الأدوات في الأسفل لإضافة خريطة أو مخطط أو جدول',
     },
   }[lang]
 
@@ -98,11 +98,11 @@ function WidgetCanvas() {
     <div
       onClick={() => selectWidget(null)}
       style={{
-        flex: 1,
-        background: 'var(--page-bg)',
-        overflow: 'auto',
-        position: 'relative',
-        direction: 'ltr',
+        flex:       1,
+        background: 'transparent',
+        overflow:   'auto',
+        position:   'relative',
+        direction:  'ltr',
       }}
     >
       {widgets.length === 0 ? (
@@ -162,35 +162,35 @@ function WidgetCanvas() {
               key={widget.id}
               onClick={e => { e.stopPropagation(); selectWidget(widget.id) }}
               style={{
-                background: 'var(--surface)',
-                border: `1.5px solid ${selectedWidgetId === widget.id
-                  ? 'var(--accent)'
-                  : 'var(--border)'}`,
-                borderRadius: 'var(--radius-lg)',
-                display: 'flex',
-                flexDirection: 'column',
-                overflow: 'hidden',
-                cursor: 'default',
-                transition: 'border-color 0.15s, box-shadow 0.15s',
-                boxShadow: selectedWidgetId === widget.id
-                  ? '0 0 0 3px var(--accent-light)'
-                  : 'none',
-              }}
+                background:           'rgba(255,255,255,0.82)',
+                backdropFilter:       'blur(8px)',
+                WebkitBackdropFilter: 'blur(8px)',
+                border:               `1.5px solid ${selectedWidgetId === widget.id ? 'var(--accent)' : 'rgba(255,255,255,0.9)'}`,
+                borderRadius:         '12px',
+                display:              'flex',
+                flexDirection:        'column',
+                overflow:             'hidden',
+                cursor:               'default',
+                transition:           'border-color 0.15s, box-shadow 0.15s',
+                boxShadow:            selectedWidgetId === widget.id
+                  ? '0 0 0 3px var(--accent-light), 0 4px 20px rgba(0,0,0,0.08)'
+                  : '0 2px 12px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04)',
+              } as React.CSSProperties}
             >
               {/* Widget header — drag handle */}
               <div
                 className="widget-drag-handle"
                 style={{
-                  padding: '8px 12px',
-                  borderBottom: '1px solid var(--border)',
-                  display: 'flex',
-                  alignItems: 'center',
+                  padding:      '8px 12px',
+                  borderBottom: '1px solid rgba(229,231,235,0.5)',
+                  display:      'flex',
+                  alignItems:   'center',
                   justifyContent: 'space-between',
-                  gap: '8px',
-                  cursor: 'grab',
-                  background: 'var(--surface)',
-                  flexShrink: 0,
-                  userSelect: 'none',
+                  gap:          '8px',
+                  cursor:       'grab',
+                  background:   'rgba(248,250,252,0.7)',
+                  flexShrink:   0,
+                  userSelect:   'none',
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>

@@ -59,6 +59,7 @@ function WidgetToolbar() {
       justifyContent: 'center',
       padding: '0 16px',
       gap: '4px',
+      direction: lang === 'ar' ? 'rtl' : 'ltr',
     }}>
       {widgetTypes.map(w => (
         <button

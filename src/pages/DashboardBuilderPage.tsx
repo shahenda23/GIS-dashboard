@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext'
 import AccessDeniedPage from '../components/AccessDeniedPage'
 import BuilderTopBar from '../features/builder/components/BuildertopBar'
 import LayersPanel from '../features/builder/components/LayersPanel'
-import WidgetToolbar from '../features/builder/components/WidgetToolBar'
+import WidgetDock from '../features/builder/components/WidgetDock'
 import WidgetCanvas from '../features/builder/components/WidgetCanvas'
 import SettingsPanel from '../features/builder/components/settings/SettingsPanel'
 import AppLoader from '../components/AppLoader'
@@ -41,6 +41,7 @@ function DashboardBuilderPage() {
           dashboardId:      id,
           isSaved:          true,
           zoomToLayerId:    null,
+          ownerId:          null,   // reset so stale value never bypasses the access check
         })
         loadDashboard(id)  // sets store.isLoading true → false when done
       }
@@ -64,6 +65,7 @@ function DashboardBuilderPage() {
           dashboardId:      crypto.randomUUID(),
           isSaved:          true,
           zoomToLayerId:    null,
+          ownerId:          user?.id ?? null,  // set owner so preview → back to builder works
         })
         setIsInitializing(false)
       }
@@ -80,20 +82,41 @@ function DashboardBuilderPage() {
 
   return (
     <div style={{
-      height: '100vh',
-      display: 'flex',
-      flexDirection: 'column',
-      overflow: 'hidden',
-      background: 'var(--page-bg)',
-      direction: 'ltr',
+      height:              '100vh',
+      display:             'flex',
+      flexDirection:       'column',
+      overflow:            'hidden',
+      background:          '#f1f5f9',
+      backgroundImage:     'radial-gradient(circle, #c8d3e0 1px, transparent 1px)',
+      backgroundSize:      '24px 24px',
+      direction:           'ltr',
     }}>
       <BuilderTopBar />
-      {!isLoading && <WidgetToolbar />}
-      <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+
+      {/* Main content row */}
+      <div style={{
+        display:  'flex',
+        flex:     1,
+        overflow: 'hidden',
+        padding:  '8px 12px 0 12px',
+        gap:      '10px',
+      }}>
         {!isLoading && <LayersPanel />}
         {isLoading ? <AppLoader /> : <WidgetCanvas />}
         {!isLoading && <SettingsPanel />}
       </div>
+
+      {/* macOS-style dock at bottom */}
+      {!isLoading && (
+        <div style={{
+          display:        'flex',
+          justifyContent: 'center',
+          padding:        '10px 0 14px',
+          flexShrink:     0,
+        }}>
+          <WidgetDock />
+        </div>
+      )}
     </div>
   )
 }

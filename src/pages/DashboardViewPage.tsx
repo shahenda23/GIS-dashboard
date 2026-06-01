@@ -20,13 +20,20 @@ import 'react-resizable/css/styles.css'
 
 const ResponsiveGridLayout = WidthProvider(Responsive)
 
-// ── Constants ────────────────────────────────────────────────────────────────
-const HEADER_H  = 64
-const BANNER_H  = 36
-const CARD_GAP  = 16   // المسافة بين الـ cards
-const EDGE_PAD  = 50   // الـ padding على الحواف (فوق / تحت / يمين / شمال)
+const HEADER_H  = 54
+const BANNER_H  = 44
+const CARD_GAP  = 16
+const EDGE_PAD  = 40
 const GRID_COLS = 12
 
+const GLASS: React.CSSProperties = {
+  background:           'rgba(255,255,255,0.78)',
+  backdropFilter:       'blur(18px)',
+  WebkitBackdropFilter: 'blur(18px)',
+  border:               '1px solid rgba(255,255,255,0.85)',
+  borderRadius:         '40px',
+  boxShadow:            '0 4px 20px rgba(0,0,0,0.07), inset 0 1px 0 rgba(255,255,255,0.95)',
+}
 
 function renderWidget(widget: Widget) {
   const cfg = widget.config ?? {}
@@ -37,56 +44,33 @@ function renderWidget(widget: Widget) {
   return <ChartWidget type={widget.type} config={cfg as any} />
 }
 
-function relativeTime(iso: string): string {
-  const diff = Date.now() - new Date(iso).getTime()
-  const m = Math.floor(diff / 60000)
-  if (m < 1) return 'just now'
-  if (m < 60) return `${m}m ago`
-  const h = Math.floor(m / 60)
-  if (h < 24) return `${h}h ago`
-  return `${Math.floor(h / 24)}d ago`
-}
-
-// Scale layout positions to fill GRID_COLS columns proportionally.
-// If widgets only span 8 cols, scale by 12/8 so they fill the screen.
 function scaleLayout(widgets: Widget[], colScale: number): LayoutItem[] {
   return widgets.map(w => {
     const scaledX     = Math.round(w.x * colScale)
     const scaledRight = Math.round((w.x + w.w) * colScale)
-    return {
-      i:      w.id,
-      x:      scaledX,
-      w:      Math.max(1, scaledRight - scaledX),
-      y:      w.y,
-      h:      w.h,
-      static: true,
-    }
+    return { i: w.id, x: scaledX, w: Math.max(1, scaledRight - scaledX), y: w.y, h: w.h, static: true }
   })
 }
 
-// ── Page ─────────────────────────────────────────────────────────────────────
 export default function DashboardViewPage() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { user } = useAuth()
   const { lang, toggleLang } = useTheme()
   const widgets        = useBuilderStore(s => s.widgets)
-  const layers         = useBuilderStore(s => s.layers)
   const dashboardTitle = useBuilderStore(s => s.dashboardTitle)
   const dashboardId    = useBuilderStore(s => s.dashboardId)
-  const updatedAt      = useBuilderStore(s => s.updatedAt)
+
   const ownerId        = useBuilderStore(s => s.ownerId)
-  const isPublic       = useBuilderStore(s => s.isPublic)
   const loadDashboard  = useBuilderStore(s => s.loadDashboard)
   const isOwner        = !!user && user.id === ownerId
-  const [showShare,  setShowShare]  = useState(false)
-  const [status,     setStatus]     = useState<'loading'|'found'|'notfound'|'denied'>('loading')
-  const [cardHover,  setCardHover]  = useState<string | null>(null)
-  const [viewportH,  setViewportH]  = useState(window.innerHeight)
+  const [showShare, setShowShare] = useState(false)
+  const [status,    setStatus]    = useState<'loading'|'found'|'notfound'|'denied'>('loading')
+  const [cardHover, setCardHover] = useState<string | null>(null)
+  const [viewportH, setViewportH] = useState(window.innerHeight)
 
   const isPreview = !id || id === 'preview'
 
-  // Keep viewport height in sync on resize
   useEffect(() => {
     const sync = () => setViewportH(window.innerHeight)
     window.addEventListener('resize', sync)
@@ -98,7 +82,6 @@ export default function DashboardViewPage() {
       brand:         'GIS Dashboard Builder',
       edit:          'Edit Dashboard',
       share:         'Share',
-      updated:       'Updated',
       previewMode:   'Preview',
       notFoundTitle: 'Dashboard Not Found',
       notFoundBody:  'This dashboard does not exist or may have been deleted.',
@@ -106,14 +89,12 @@ export default function DashboardViewPage() {
       openEditor:    'Open Editor',
       noWidgetsTitle:'No widgets yet',
       noWidgetsBody: 'Go to the editor to add charts, maps, and more.',
-      widgets:       (n: number) => `${n} widget${n !== 1 ? 's' : ''}`,
-      layers:        (n: number) => `${n} layer${n !== 1 ? 's' : ''}`,
+      previewBanner: 'Preview mode — changes are not yet published.',
     },
     ar: {
       brand:         'GIS Dashboard Builder',
       edit:          'تعديل اللوحة',
       share:         'مشاركة',
-      updated:       'تحديث',
       previewMode:   'معاينة',
       notFoundTitle: 'اللوحة غير موجودة',
       notFoundBody:  'هذه اللوحة غير موجودة أو ربما تم حذفها.',
@@ -121,24 +102,18 @@ export default function DashboardViewPage() {
       openEditor:    'فتح المحرر',
       noWidgetsTitle:'لا توجد ودجت بعد',
       noWidgetsBody: 'اذهب إلى المحرر لإضافة مخططات وخرائط وأكثر.',
-      widgets:       (n: number) => `${n} ودجت`,
-      layers:        (n: number) => `${n} طبقة`,
+      previewBanner: 'وضع المعاينة — التغييرات لم تُنشر بعد.',
     },
   }[lang]
 
-  // Load dashboard from Supabase and detect not-found / access-denied
   useEffect(() => {
     if (!isPreview && id) {
       setStatus('loading')
       loadDashboard(id).then(() => {
         const state = useBuilderStore.getState()
         if (state.dashboardId !== id) {
-          // RLS blocked the read OR dashboard truly doesn't exist.
-          // If user is logged in → access denied (private dashboard).
-          // If anonymous → not found (needs to log in first).
           setStatus('denied')
         } else if (!state.isPublic && user?.id !== state.ownerId) {
-          // Loaded but private and viewer is not the owner
           setStatus('denied')
         } else {
           setStatus('found')
@@ -150,45 +125,47 @@ export default function DashboardViewPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id])
 
-  // ── Grid scaling ────────────────────────────────────────────────────────────
-  // usedCols: how many columns the widgets actually occupy (e.g. 8 out of 12)
-  // colScale: multiply every x and w so they fill all 12 columns
-  const usedCols = widgets.length ? Math.max(...widgets.map(w => w.x + w.w)) : GRID_COLS
-  const usedRows = widgets.length ? Math.max(...widgets.map(w => w.y + w.h)) : 4
-  const colScale = GRID_COLS / Math.max(usedCols, 1)
-
-  // rowHeight: fill the available viewport height exactly
-  const chromeH  = HEADER_H + (isPreview ? BANNER_H : 0)
-  const availH   = viewportH - chromeH
-  // subtract row gaps + top/bottom edge padding from available height
-  const viewRowH = Math.max(80, Math.floor(
+  const usedCols  = widgets.length ? Math.max(...widgets.map(w => w.x + w.w)) : GRID_COLS
+  const usedRows  = widgets.length ? Math.max(...widgets.map(w => w.y + w.h)) : 4
+  const colScale  = GRID_COLS / Math.max(usedCols, 1)
+  const chromeH   = HEADER_H + (isPreview ? BANNER_H : 0)
+  const availH    = viewportH - chromeH
+  const viewRowH  = Math.max(80, Math.floor(
     (availH - (usedRows - 1) * CARD_GAP - EDGE_PAD * 2) / usedRows
   ))
-
   const gridLayout = scaleLayout(widgets, colScale)
 
-  // ── Loading ─────────────────────────────────────────────────────────────────
+  // ── canvas background — iridescent gradient (distinct from builder's dotted grid) ──
+  const canvasBg: React.CSSProperties = {
+    height:          '100vh',
+    display:         'flex',
+    flexDirection:   'column',
+    overflow:        'hidden',
+    background:      '#f6f8ff',
+    backgroundImage: [
+      'radial-gradient(ellipse at 20% 15%, rgba(199,210,254,0.55) 0%, transparent 45%)',
+      'radial-gradient(ellipse at 80% 80%, rgba(167,243,208,0.45) 0%, transparent 45%)',
+      'radial-gradient(ellipse at 70% 10%, rgba(251,207,232,0.40) 0%, transparent 38%)',
+      'radial-gradient(ellipse at 10% 85%, rgba(254,240,138,0.30) 0%, transparent 40%)',
+    ].join(', '),
+  }
+
   if (status === 'loading') return <AppLoader />
+  if (status === 'denied')  return <AccessDeniedPage />
 
-  // ── Access Denied ────────────────────────────────────────────────────────────
-  if (status === 'denied') return <AccessDeniedPage />
-
-  // ── Not Found ───────────────────────────────────────────────────────────────
   if (status === 'notfound') {
     return (
-      <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--page-bg)' }}>
-        <TopBar
-          title="Dashboard" isPreview={false} dashboardId={dashboardId}
-          widgetCount={0} layerCount={0} updatedAt={null} isOwner={false}
-          labels={labels} lang={lang} toggleLang={toggleLang}
-          navigate={navigate} onShare={() => {}}        />
+      <div style={canvasBg}>
+        <ViewTopBar title="Dashboard" isPreview={false} dashboardId={dashboardId}
+          isOwner={false} labels={labels} lang={lang} toggleLang={toggleLang}
+          navigate={navigate} onShare={() => {}} />
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '16px' }}>
-          <div style={{ width: '72px', height: '72px', borderRadius: '50%', background: '#fef2f2', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '28px' }}>🔍</div>
+          <div style={{ width: '72px', height: '72px', borderRadius: '50%', background: 'rgba(255,255,255,0.88)', backdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '28px', border: '1px solid rgba(255,255,255,0.9)', boxShadow: '0 4px 16px rgba(0,0,0,0.08)' }}>🔍</div>
           <div style={{ textAlign: 'center' }}>
             <h2 style={{ fontSize: '18px', fontWeight: '700', color: 'var(--text-primary)', margin: '0 0 6px' }}>{labels.notFoundTitle}</h2>
             <p style={{ fontSize: '14px', color: 'var(--text-secondary)', margin: 0 }}>{labels.notFoundBody}</p>
           </div>
-          <button onClick={() => navigate('/')} style={{ padding: '8px 20px', background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: 'var(--radius-md)', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }}>
+          <button onClick={() => navigate('/')} style={{ padding: '8px 20px', background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: '20px', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }}>
             {labels.backHome}
           </button>
         </div>
@@ -196,45 +173,58 @@ export default function DashboardViewPage() {
     )
   }
 
-  // ── Main View ───────────────────────────────────────────────────────────────
   return (
-    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', background: 'var(--page-bg)' }}>
+    <div style={canvasBg}>
 
-      <TopBar
+      <ViewTopBar
         title={dashboardTitle} isPreview={isPreview} dashboardId={dashboardId}
-        widgetCount={widgets.length} layerCount={layers.length} updatedAt={updatedAt}
-        isOwner={isOwner}
-        labels={labels} lang={lang} toggleLang={toggleLang}
-        navigate={navigate} onShare={() => setShowShare(true)}      />
+        isOwner={isOwner} labels={labels} lang={lang} toggleLang={toggleLang}
+        navigate={navigate} onShare={() => setShowShare(true)} />
 
-      {/* Preview banner */}
+      {/* Preview banner — floating amber pill */}
       {isPreview && (
-        <div style={{ background: 'linear-gradient(90deg, #fffbeb, #fef3c7)', borderBottom: '1px solid #fde68a', padding: '7px 24px', display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#d97706" strokeWidth="1.6">
-            <circle cx="7" cy="7" r="6"/>
-            <line x1="7" y1="4" x2="7" y2="7.5"/>
-            <circle cx="7" cy="10" r="0.5" fill="#d97706"/>
-          </svg>
-          <span style={{ fontSize: '12px', color: '#92400e', fontWeight: '500' }}>
-            {lang === 'en' ? 'You are viewing a preview. Changes are not yet published.' : 'أنت في وضع المعاينة. التغييرات لم تُنشر بعد.'}
-          </span>
-          <button onClick={() => navigate(`/builder/${dashboardId}`)} style={{ marginLeft: 'auto', fontSize: '11px', fontWeight: '600', color: '#d97706', background: 'transparent', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>
-            {labels.edit}
-          </button>
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '0 12px 8px', flexShrink: 0 }}>
+          <div style={{
+            display:              'flex',
+            alignItems:           'center',
+            gap:                  '8px',
+            background:           'rgba(254,243,199,0.92)',
+            backdropFilter:       'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
+            border:               '1px solid rgba(253,230,138,0.85)',
+            borderRadius:         '40px',
+            padding:              '6px 16px',
+            boxShadow:            '0 2px 12px rgba(217,119,6,0.12)',
+          } as React.CSSProperties}>
+            <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="#d97706" strokeWidth="1.6">
+              <circle cx="7" cy="7" r="6"/>
+              <line x1="7" y1="4" x2="7" y2="7.5"/>
+              <circle cx="7" cy="10" r="0.5" fill="#d97706"/>
+            </svg>
+            <span style={{ fontSize: '12px', color: '#92400e', fontWeight: '500' }}>
+              {labels.previewBanner}
+            </span>
+            <button
+              onClick={() => navigate(`/builder/${dashboardId}`)}
+              style={{ fontSize: '11px', fontWeight: '700', color: '#b45309', background: 'transparent', border: 'none', cursor: 'pointer', textDecoration: 'underline', marginLeft: '4px' }}
+            >
+              {labels.edit}
+            </button>
+          </div>
         </div>
       )}
 
-      {/* Widget grid — fills remaining screen, scrollable if content exceeds viewport */}
+      {/* Widget grid */}
       <div style={{ flex: 1, overflow: 'auto', height: availH, direction: 'ltr' }}>
         {widgets.length === 0 ? (
-          <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '14px' }}>
-            <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'var(--accent-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '32px' }}>📊</div>
+          <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '16px' }}>
+            <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'rgba(255,255,255,0.88)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.9)', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '32px' } as React.CSSProperties}>📊</div>
             <div style={{ textAlign: 'center' }}>
               <p style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-primary)', margin: '0 0 6px' }}>{labels.noWidgetsTitle}</p>
               <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: 0 }}>{labels.noWidgetsBody}</p>
             </div>
             {isOwner && (
-              <button onClick={() => navigate(`/builder/${dashboardId}`)} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 18px', background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: 'var(--radius-md)', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }}>
+              <button onClick={() => navigate(`/builder/${dashboardId}`)} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 18px', background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: '20px', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }}>
                 <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M9 2l2 2-6 6H3V8l6-6z"/></svg>
                 {labels.openEditor}
               </button>
@@ -259,23 +249,25 @@ export default function DashboardViewPage() {
                 onMouseEnter={() => setCardHover(widget.id)}
                 onMouseLeave={() => setCardHover(null)}
                 style={{
-                  background:    'var(--surface)',
-                  border:        '1px solid var(--border)',
-                  borderRadius:  'var(--radius-lg)',
-                  display:       'flex',
-                  flexDirection: 'column',
-                  overflow:      'hidden',
-                  boxShadow:     cardHover === widget.id
-                    ? '0 4px 16px rgba(0,0,0,0.10), 0 1px 4px rgba(0,0,0,0.06)'
-                    : '0 1px 4px rgba(0,0,0,0.05)',
-                  transition:    'box-shadow 0.2s ease, transform 0.15s ease',
-                  transform:     cardHover === widget.id ? 'translateY(-1px)' : 'translateY(0)',
-                }}
+                  background:           'rgba(255,255,255,0.92)',
+                  backdropFilter:       'blur(12px)',
+                  WebkitBackdropFilter: 'blur(12px)',
+                  border:               '1px solid rgba(255,255,255,0.95)',
+                  borderRadius:         '16px',
+                  display:              'flex',
+                  flexDirection:        'column',
+                  overflow:             'hidden',
+                  boxShadow:            cardHover === widget.id
+                    ? '0 12px 40px rgba(0,0,0,0.12), 0 4px 12px rgba(0,0,0,0.07)'
+                    : '0 4px 18px rgba(0,0,0,0.07), 0 1px 4px rgba(0,0,0,0.04)',
+                  transition:           'box-shadow 0.25s ease, transform 0.2s ease',
+                  transform:            cardHover === widget.id ? 'translateY(-3px)' : 'translateY(0)',
+                } as React.CSSProperties}
               >
                 {/* Title bar */}
-                <div style={{ padding: '9px 14px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '7px', flexShrink: 0, background: 'var(--surface)' }}>
-                  <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-primary)', letterSpacing: '0.1px' }}>{widget.title}</span>
-                  <span style={{ marginLeft: 'auto', fontSize: '10px', fontWeight: '500', color: 'var(--text-muted)', background: 'var(--page-bg)', border: '1px solid var(--border)', borderRadius: '4px', padding: '1px 6px', textTransform: 'capitalize' }}>
+                <div style={{ padding: '10px 16px', borderBottom: '1px solid rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', gap: '7px', flexShrink: 0, background: 'transparent' }}>
+                  <span style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-primary)', letterSpacing: '0.1px' }}>{widget.title}</span>
+                  <span style={{ marginLeft: 'auto', fontSize: '10px', fontWeight: '500', color: 'var(--text-muted)', background: 'rgba(0,0,0,0.04)', borderRadius: '20px', padding: '2px 8px', textTransform: 'capitalize', letterSpacing: '0.2px' }}>
                     {widget.type.replace('-', ' ')}
                   </span>
                 </div>
@@ -295,87 +287,102 @@ export default function DashboardViewPage() {
 }
 
 // ── Top Bar ───────────────────────────────────────────────────────────────────
-interface TopBarProps {
+interface ViewTopBarProps {
   title: string; isPreview: boolean; dashboardId: string; isOwner: boolean
-  widgetCount: number; layerCount: number; updatedAt: string | null
   labels: any; lang: string; toggleLang: () => void
   navigate: (to: string) => void; onShare: () => void
 }
 
-function TopBar({ title, isPreview, dashboardId, isOwner, widgetCount, layerCount, updatedAt, labels, lang, toggleLang, navigate, onShare }: TopBarProps) {
-  const [editHover,  setEditHover]  = useState(false)
-  const [shareHover, setShareHover] = useState(false)
-  const [backHover,  setBackHover]  = useState(false)
-
+function ViewTopBar({ title, isPreview, dashboardId, isOwner, labels, lang, toggleLang, navigate, onShare }: ViewTopBarProps) {
   return (
-    <header style={{ height: `${HEADER_H}px`, background: 'var(--surface)', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 24px', flexShrink: 0, zIndex: 200, boxShadow: '0 1px 0 var(--border)' }}>
+    <header style={{ padding: '10px 12px', display: 'flex', justifyContent: 'center', position: 'sticky', top: 0, zIndex: 200, flexShrink: 0 }}>
 
-      {/* Left */}
-      <div style={{ display: 'flex', alignItems: 'center' }}>
-
+      {/* Single compact centered glass bar */}
+      <div style={{
+        ...GLASS,
+        display:      'inline-flex',
+        alignItems:   'center',
+        gap:          '20px',
+        padding:      '6px 10px 6px 6px',
+        borderRadius: '20px',
+      }}>
+        {/* Back */}
         <button
           onClick={() => navigate('/')}
-          onMouseEnter={() => setBackHover(true)}
-          onMouseLeave={() => setBackHover(false)}
           title={lang === 'en' ? 'Back to dashboards' : 'العودة للوحات'}
-          style={{ width: '34px', height: '34px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: backHover ? 'var(--page-bg)' : 'transparent', border: 'none', borderRadius: 'var(--radius-md)', cursor: 'pointer', marginRight: '6px', transition: 'background 0.15s', color: 'var(--text-secondary)', flexShrink: 0 }}
+          style={{ width: '34px', height: '34px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent', border: 'none', borderRadius: '50%', cursor: 'pointer', color: 'var(--text-secondary)', flexShrink: 0, transition: 'background 0.15s' }}
+          onMouseEnter={e => (e.currentTarget.style.background = 'rgba(0,0,0,0.06)')}
+          onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
         >
-          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.6" style={{ transform: lang === 'ar' ? 'scaleX(-1)' : 'none' }}><path d="M11 14L6 9l5-5"/></svg>
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.6" style={{ transform: lang === 'ar' ? 'scaleX(-1)' : 'none' }}>
+            <path d="M11 14L6 9l5-5"/>
+          </svg>
         </button>
 
-        <div onClick={() => navigate('/')} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', marginRight: '16px' }}>
-          <img src={logoUrl} alt="logo" style={{ width: '32px', height: '32px', borderRadius: 'var(--radius-md)', flexShrink: 0 }} />
-          <span style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-primary)', whiteSpace: 'nowrap' }}>{labels.brand}</span>
-        </div>
+        {/* Logo */}
+        <img src={logoUrl} alt="logo" style={{ width: '26px', height: '26px', borderRadius: '8px', flexShrink: 0, margin: '0 6px' }} />
 
-        <div style={{ width: '1px', height: '22px', background: 'var(--border)', marginRight: '16px', flexShrink: 0 }} />
+        {/* Divider */}
+        <div style={{ width: '1px', height: '18px', background: 'rgba(0,0,0,0.10)', flexShrink: 0, margin: '0 8px 0 2px' }} />
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)', lineHeight: 1 }}>{title}</span>
-          {isPreview && (
-            <span style={{ fontSize: '10px', fontWeight: '700', color: '#d97706', background: '#fef3c7', border: '1px solid #fde68a', borderRadius: '10px', padding: '1px 8px', letterSpacing: '0.3px' }}>
-              {labels.previewMode}
-            </span>
-          )}
-        </div>
-      </div>
+        {/* Title */}
+        <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '260px' }}>
+          {title}
+        </span>
 
-      {/* Right */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        {/* Preview badge */}
+        {isPreview && (
+          <span style={{ fontSize: '10px', fontWeight: '700', color: '#d97706', background: 'rgba(254,243,199,0.9)', border: '1px solid rgba(253,230,138,0.8)', borderRadius: '20px', padding: '2px 8px', whiteSpace: 'nowrap', flexShrink: 0, marginLeft: '6px' }}>
+            {labels.previewMode}
+          </span>
+        )}
 
-        <button onClick={toggleLang} title={lang === 'en' ? 'Switch to Arabic' : 'Switch to English'} style={{ width: '34px', height: '34px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent', border: 'none', borderRadius: 'var(--radius-md)', cursor: 'pointer' }}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+        {/* Divider between left and right groups */}
+        <div style={{ width: '1px', height: '18px', background: 'rgba(0,0,0,0.10)', flexShrink: 0, margin: '0 8px' }} />
+
+        {/* Lang toggle */}
+        <button
+          onClick={toggleLang}
+          title={lang === 'en' ? 'Switch to Arabic' : 'Switch to English'}
+          style={{ width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent', border: 'none', borderRadius: '50%', cursor: 'pointer', color: 'var(--text-secondary)', flexShrink: 0, transition: 'background 0.15s' }}
+          onMouseEnter={e => (e.currentTarget.style.background = 'rgba(0,0,0,0.06)')}
+          onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="12" cy="12" r="10"/>
             <line x1="2" y1="12" x2="22" y2="12"/>
             <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
           </svg>
         </button>
 
+        {/* Share */}
         <button
           onClick={onShare}
-          onMouseEnter={() => setShareHover(true)}
-          onMouseLeave={() => setShareHover(false)}
-          style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '7px 14px', background: shareHover ? 'var(--page-bg)' : 'transparent', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', fontSize: '13px', fontWeight: '500', color: shareHover ? 'var(--text-primary)' : 'var(--text-secondary)', cursor: 'pointer', transition: 'all 0.15s' }}
+          style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '6px 12px', background: 'transparent', border: 'none', borderRadius: '12px', fontSize: '12px', fontWeight: '500', color: 'var(--text-secondary)', cursor: 'pointer', flexShrink: 0, transition: 'all 0.15s' }}
+          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(0,0,0,0.06)'; e.currentTarget.style.color = 'var(--text-primary)' }}
+          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-secondary)' }}
         >
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.6">
+          <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.6">
             <circle cx="11" cy="3" r="1.5"/><circle cx="3" cy="7" r="1.5"/><circle cx="11" cy="11" r="1.5"/>
             <path d="M4.5 6.5l5-2.5M4.5 7.5l5 2.5"/>
           </svg>
           {labels.share}
         </button>
 
+        {/* Edit (owner only) */}
         {isOwner && (
           <button
             onClick={() => navigate(`/builder/${dashboardId}`)}
-            onMouseEnter={() => setEditHover(true)}
-            onMouseLeave={() => setEditHover(false)}
-            style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '7px 16px', background: editHover ? 'var(--accent-hover)' : 'var(--accent)', border: 'none', borderRadius: 'var(--radius-md)', fontSize: '13px', fontWeight: '600', color: '#fff', cursor: 'pointer', transition: 'background 0.15s', boxShadow: '0 1px 3px rgba(14,165,233,0.3)' }}
+            style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '6px 12px', background: 'var(--accent)', border: 'none', borderRadius: '12px', fontSize: '12px', fontWeight: '600', color: '#fff', cursor: 'pointer', flexShrink: 0, transition: 'background 0.15s' }}
+            onMouseEnter={e => (e.currentTarget.style.background = 'var(--accent-hover)')}
+            onMouseLeave={e => (e.currentTarget.style.background = 'var(--accent)')}
           >
-            <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M9 2l2 2-6 6H3V8l6-6z"/></svg>
+            <svg width="12" height="12" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.8">
+              <path d="M9 2l2 2-6 6H3V8l6-6z"/>
+            </svg>
             {labels.edit}
           </button>
         )}
-
       </div>
     </header>
   )

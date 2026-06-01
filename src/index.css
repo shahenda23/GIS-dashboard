@@ -3,6 +3,23 @@
   to   { transform: rotate(360deg); }
 }
 
+/* Neon glow when dragging a widget */
+.react-grid-item.react-draggable-dragging {
+  box-shadow: 0 12px 40px rgba(14, 165, 233, 0.28),
+              0 0 0 2px rgba(14, 165, 233, 0.35) !important;
+  opacity: 0.96;
+  z-index: 999;
+}
+
+/* macOS-style dock item bounce */
+.dock-item {
+  transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.18s;
+}
+.dock-item:hover {
+  transform: scale(1.18) translateY(-4px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+}
+
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;

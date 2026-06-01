@@ -57,21 +57,31 @@ function BuilderTopBar() {
     <>
       <div
         style={{
-          height: "52px",
-          background: "var(--surface)",
-          borderBottom: "1px solid var(--border)",
-          display: "flex",
-          alignItems: "center",
+          display:        "flex",
+          alignItems:     "center",
           justifyContent: "space-between",
-          padding: "0 16px",
-          gap: "12px",
-          position: "sticky",
-          top: 0,
-          zIndex: 100,
+          padding:        "8px 12px",
+          background:     "transparent",
+          position:       "sticky",
+          top:            0,
+          zIndex:         100,
+          flexShrink:     0,
+          gap:            "8px",
         }}
       >
-        {/* Left — Back + Logo + Title */}
-        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+        {/* Left — floating glass pill */}
+        <div style={{
+          display:              "flex",
+          alignItems:           "center",
+          gap:                  "10px",
+          background:           "rgba(255,255,255,0.88)",
+          backdropFilter:       "blur(14px)",
+          WebkitBackdropFilter: "blur(14px)",
+          border:               "1px solid rgba(255,255,255,0.92)",
+          borderRadius:         "40px",
+          padding:              "5px 16px 5px 5px",
+          boxShadow:            "0 2px 14px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.9)",
+        } as React.CSSProperties}>
           {/* Back button */}
           <button
             onClick={() => guardedNav("/")}
@@ -181,27 +191,38 @@ function BuilderTopBar() {
           </div>
         </div>
 
-        {/* Right — Preview + Save + Share + Publish */}
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+        {/* Right — floating glass pill */}
+        <div style={{
+          display:              "flex",
+          alignItems:           "center",
+          gap:                  "4px",
+          background:           "rgba(255,255,255,0.88)",
+          backdropFilter:       "blur(14px)",
+          WebkitBackdropFilter: "blur(14px)",
+          border:               "1px solid rgba(255,255,255,0.92)",
+          borderRadius:         "40px",
+          padding:              "5px 8px",
+          boxShadow:            "0 2px 14px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.9)",
+        } as React.CSSProperties}>
           {/* Preview button */}
           <button
             onClick={() => navigate("/dashboard/preview")}
             style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
-              padding: "6px 14px",
-              background: "transparent",
-              border: "1px solid var(--border)",
-              borderRadius: "var(--radius-md)",
-              fontSize: "13px",
-              color: "var(--text-secondary)",
-              cursor: "pointer",
-              fontWeight: "500",
-              transition: "all 0.15s",
+              display:      "flex",
+              alignItems:   "center",
+              gap:          "6px",
+              padding:      "6px 14px",
+              background:   "transparent",
+              border:       "none",
+              borderRadius: "20px",
+              fontSize:     "13px",
+              color:        "var(--text-secondary)",
+              cursor:       "pointer",
+              fontWeight:   "500",
+              transition:   "all 0.15s",
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = "var(--page-bg)";
+              e.currentTarget.style.background = "rgba(0,0,0,0.06)";
               e.currentTarget.style.color = "var(--text-primary)";
             }}
             onMouseLeave={(e) => {
@@ -228,19 +249,19 @@ function BuilderTopBar() {
             onClick={handleSave}
             disabled={isSaved || isSaving}
             style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
-              padding: "6px 14px",
-              background: isSaved && !isSaving ? "var(--page-bg)" : "var(--accent)",
-              border: `1px solid ${isSaved && !isSaving ? "var(--border)" : "var(--accent)"}`,
-              borderRadius: "var(--radius-md)",
-              fontSize: "13px",
-              color: isSaved && !isSaving ? "var(--text-muted)" : "#fff",
-              cursor: isSaved || isSaving ? "default" : "pointer",
-              fontWeight: "500",
-              transition: "all 0.15s",
-              opacity: isSaved && !isSaving ? 0.6 : 1,
+              display:      "flex",
+              alignItems:   "center",
+              gap:          "6px",
+              padding:      "6px 14px",
+              background:   isSaved && !isSaving ? "transparent" : "var(--accent)",
+              border:       "none",
+              borderRadius: "20px",
+              fontSize:     "13px",
+              color:        isSaved && !isSaving ? "var(--text-muted)" : "#fff",
+              cursor:       isSaved || isSaving ? "default" : "pointer",
+              fontWeight:   "500",
+              transition:   "all 0.15s",
+              opacity:      isSaved && !isSaving ? 0.55 : 1,
             }}
             onMouseEnter={(e) => {
               if (!isSaved && !isSaving)
@@ -271,25 +292,21 @@ function BuilderTopBar() {
           <button
             onClick={() => setShowShare(true)}
             style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
-              padding: "6px 14px",
-              background: "transparent",
-              border: "1px solid var(--border)",
-              borderRadius: "var(--radius-md)",
-              fontSize: "13px",
-              color: "var(--text-primary)",
-              cursor: "pointer",
-              fontWeight: "500",
-              transition: "background 0.15s",
+              display:      "flex",
+              alignItems:   "center",
+              gap:          "6px",
+              padding:      "6px 14px",
+              background:   "transparent",
+              border:       "none",
+              borderRadius: "20px",
+              fontSize:     "13px",
+              color:        "var(--text-primary)",
+              cursor:       "pointer",
+              fontWeight:   "500",
+              transition:   "background 0.15s",
             }}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.background = "var(--page-bg)")
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.background = "transparent")
-            }
+            onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(0,0,0,0.06)")}
+            onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
           >
             <svg
               width="14"
@@ -310,13 +327,12 @@ function BuilderTopBar() {
           {/* Publish toggle */}
           <div
             style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-              padding: "6px 14px",
-              background: "var(--page-bg)",
-              border: "1px solid var(--border)",
-              borderRadius: "var(--radius-md)",
+              display:      "flex",
+              alignItems:   "center",
+              gap:          "8px",
+              padding:      "6px 14px",
+              background:   "transparent",
+              border:       "none",
             }}
           >
             <span

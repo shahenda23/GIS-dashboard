@@ -306,10 +306,12 @@ function ViewTopBar({ title, isPreview, dashboardId, isOwner, labels, lang, togg
         padding:      '6px 10px 6px 6px',
         borderRadius: '20px',
       }}>
-        {/* Back */}
+        {/* Back — goes to builder in preview mode, home otherwise */}
         <button
-          onClick={() => navigate('/')}
-          title={lang === 'en' ? 'Back to dashboards' : 'العودة للوحات'}
+          onClick={() => navigate(isPreview ? `/builder/${dashboardId}` : '/')}
+          title={isPreview
+            ? (lang === 'en' ? 'Back to editor' : 'العودة للمحرر')
+            : (lang === 'en' ? 'Back to dashboards' : 'العودة للوحات')}
           style={{ width: '34px', height: '34px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent', border: 'none', borderRadius: '50%', cursor: 'pointer', color: 'var(--text-secondary)', flexShrink: 0, transition: 'background 0.15s' }}
           onMouseEnter={e => (e.currentTarget.style.background = 'rgba(0,0,0,0.06)')}
           onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}

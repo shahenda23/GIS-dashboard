@@ -7,18 +7,12 @@ import SettingsSection from '../shared/SettingsSection'
 import LayerSelect from '../shared/LayerSelect'
 import SliderInput from '../shared/SliderInput'
 import ToggleSwitch from '../shared/ToggleSwitch'
+import { MAP_STYLES } from '../../widgets/MapWidget'
 
 interface MapSettingsProps {
   widgetId: string
   config: Partial<MapConfig>
 }
-
-const MAP_STYLES = [
-  { value: 'https://tiles.openfreemap.org/styles/liberty',  label: 'Liberty (Default)' },
-  { value: 'https://tiles.openfreemap.org/styles/bright',   label: 'Bright' },
-  { value: 'https://tiles.openfreemap.org/styles/positron', label: 'Positron (Light)' },
-  { value: 'https://tiles.openfreemap.org/styles/fiord',    label: 'Fiord (Dark)' },
-]
 
 function MapSettings({ widgetId, config }: MapSettingsProps) {
   const { lang } = useTheme()

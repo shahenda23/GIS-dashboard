@@ -1,368 +1,272 @@
-// import { useNavigate } from "react-router-dom";
-// import { useState, useEffect } from "react";
-// import { DashboardConfig } from "../features/builder/types/builder.types";
-// import { useTheme } from "../context/ThemeContext";
-// import Navbar from "../features/dashboard/components/Navbar";
-// import DashboardCard from "../features/dashboard/components/DashboardCard";
-// import ShareModal from "../features/dashboard/components/ShareModal";
-// import Footer from '../features/dashboard/components/Footer'
-
-// const labels = {
-//   en: {
-//     title: "My Dashboards",
-//     subtitle: "Manage your interactive geospatial visualization projects.",
-//     newCard: "Create New Dashboard",
-//     newSub: "Start from a template or blank",
-//     emptyTitle: "No dashboards yet",
-//     emptySub: "Create your first GIS dashboard to get started",
-//     emptyBtn: "+ Create Dashboard",
-//   },
-//   ar: {
-//     title: "لوحاتي",
-//     subtitle: "إدارة مشاريع التصور الجغرافي التفاعلية.",
-//     newCard: "إنشاء لوحة جديدة",
-//     newSub: "ابدأ من قالب أو صفحة فارغة",
-//     emptyTitle: "لا توجد لوحات بعد",
-//     emptySub: "أنشئ أول لوحة GIS للبدء",
-//     emptyBtn: "+ إنشاء لوحة",
-//   },
-// };
-
-// function HomePage() {
-//   const navigate = useNavigate();
-//   const { lang } = useTheme();
-//   const [dashboards, setDashboards] = useState<DashboardConfig[]>([])
-//   const [shareModalId, setShareModalId] = useState<string | null>(null);
-//   const t = labels[lang];
-
-//   useEffect(() => {
-//     const saved = JSON.parse(localStorage.getItem('gis-dashboards') || '[]')
-//     setDashboards(saved)
-//   }, [])
-
-//   return (
-//     <div style={{ minHeight: "100vh", background: "var(--page-bg)", display: "flex", flexDirection: "column" }}>
-//       <Navbar onNewDashboard={() => navigate("/templates")} />
-
-//       <main
-//         style={{ maxWidth: "1200px", margin: "0 auto", padding: "40px 32px", flex: 1, width: "100%" }}
-//       >
-// {/* Hero */}
-// <div style={{
-//   marginBottom: '32px',
-//   paddingBottom: '24px',
-//   borderBottom: '1px solid var(--border)',
-// }}>
-//   <div style={{
-//     display: 'flex',
-//     alignItems: 'center',
-//     gap: '12px',
-//     marginBottom: '6px',
-//   }}>
-//     <h1 style={{
-//       fontSize: '32px',
-//       fontWeight: '800',
-//       color: 'var(--text-primary)',
-//       letterSpacing: '-0.6px',
-//       margin: 0,
-//     }}>
-//       {t.title}
-//     </h1>
-//     <span style={{
-//       width: '32px',
-//       height: '32px',
-//       borderRadius: '50%',
-//       border: '1.5px solid var(--accent)',
-//       color: 'var(--accent)',
-//       fontSize: '13px',
-//       fontWeight: '700',
-//       display: 'inline-flex',
-//       alignItems: 'center',
-//       justifyContent: 'center',
-//       flexShrink: 0,
-//     }}>
-//       {dashboards.length}
-//     </span>
-//   </div>
-//   <p style={{
-//     fontSize: '14px',
-//     color: 'var(--text-secondary)',
-//     maxWidth: '520px',
-//     lineHeight: '1.6',
-//     margin: 0,
-//   }}>
-//     {t.subtitle}
-//   </p>
-// </div>
-
-//         {/* Grid */}
-//         <div
-//           style={{
-//             display: "grid",
-//             gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))",
-//             gap: "16px",
-//           }}
-//         >
-//           {/* Create New Card */}
-//           <div
-//             onClick={() => navigate("/templates")}
-//             style={{
-//               background: "var(--surface)",
-//               border: "1.5px dashed var(--border-strong)",
-//               borderRadius: "var(--radius-xl)",
-//               minHeight: "200px",
-//               display: "flex",
-//               flexDirection: "column",
-//               alignItems: "center",
-//               justifyContent: "center",
-//               gap: "8px",
-//               cursor: "pointer",
-//               transition: "border-color 0.15s, background 0.15s",
-//             }}
-//             onMouseEnter={(e) => {
-//               e.currentTarget.style.borderColor = "var(--accent)";
-//               e.currentTarget.style.background = "var(--accent-light)";
-//             }}
-//             onMouseLeave={(e) => {
-//               e.currentTarget.style.borderColor = "var(--border-strong)";
-//               e.currentTarget.style.background = "var(--surface)";
-//             }}
-//           >
-//             <div
-//               style={{
-//                 width: "60px",
-//                 height: "60px",
-//                 borderRadius: "50%",
-//                 border: "1.5px solid var(--border-strong)",
-//                 display: "flex",
-//                 alignItems: "center",
-//                 justifyContent: "center",
-//                 fontSize: "20px",
-//                 color: "var(--text-muted)",
-//               }}
-//             >
-//               +
-//             </div>
-//             <div style={{ textAlign: "center" }}>
-//               <p
-//                 style={{
-//                   fontSize: "13px",
-//                   fontWeight: "600",
-//                   color: "var(--text-primary)",
-//                   marginBottom: "2px",
-//                 }}
-//               >
-//                 {t.newCard}
-//               </p>
-//               <p style={{ fontSize: "12px", color: "var(--text-muted)" }}>
-//                 {t.newSub}
-//               </p>
-//             </div>
-//           </div>
-
-//           {/* Dashboard Cards */}
-//           {dashboards.map((dashboard) => (
-//             <DashboardCard
-//               key={dashboard.id}
-//               dashboard={{
-//                 id: dashboard.id,
-//                 title: dashboard.title,
-//                 description: '',
-//                 editedAt: 'just now',
-//                 widgetCount: dashboard.widgets.length,
-//                 thumbnailUrl: 'https://images.unsplash.com/photo-1524661135-423995f22d0b?w=600&q=80',
-//                 status: 'live',
-//               }}
-//               onOpen={(id) => navigate(`/builder/${id}`)}
-//               onEdit={(id) => navigate(`/builder/${id}`)}
-//               onPreview={(id) => navigate(`/dashboard/${id}`)}
-//               onShare={(id) => setShareModalId(id)}
-//               onDelete={(id) => {
-//                 const saved = JSON.parse(localStorage.getItem('gis-dashboards') || '[]')
-//                 localStorage.setItem('gis-dashboards', JSON.stringify(saved.filter((d: any) => d.id !== id)))
-//                 setDashboards(prev => prev.filter(d => d.id !== id))
-//               }}
-//             />
-//           ))}
-//         </div>
-//       </main>
-
-//       {shareModalId && (
-//         <ShareModal
-//           dashboardId={shareModalId}
-//           onClose={() => setShareModalId(null)}
-//         />
-//       )}
-//       <Footer />
-//     </div>
-//   );
-// }
-
-// export default HomePage;
-import { useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
-import { useTheme } from "../context/ThemeContext";
-import { useAuth } from "../context/AuthContext";
-import { supabase } from "../lib/supabase";
-import Navbar from "../features/dashboard/components/Navbar";
-import DashboardCard from "../features/dashboard/components/DashboardCard";
-import ShareModal from "../features/dashboard/components/ShareModal";
+import { useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useTheme } from '../context/ThemeContext'
+import { useAuth } from '../context/AuthContext'
+import { supabase } from '../lib/supabase'
+import Navbar from '../features/dashboard/components/Navbar'
+import DashboardCard from '../features/dashboard/components/DashboardCard'
+import ShareModal from '../features/dashboard/components/ShareModal'
 import Footer from '../features/dashboard/components/Footer'
 import AppLoader from '../components/AppLoader'
-
-const labels = {
-  en: {
-    title: "My Dashboards",
-    subtitle: "Manage your interactive geospatial visualization projects.",
-    newCard: "Create New Dashboard",
-    newSub: "Start from a template or blank",
-  },
-  ar: {
-    title: "لوحاتي",
-    subtitle: "إدارة مشاريع التصور الجغرافي التفاعلية.",
-    newCard: "إنشاء لوحة جديدة",
-    newSub: "ابدأ من قالب أو صفحة فارغة",
-  },
-};
 
 function timeAgo(dateStr: string, lang: 'en' | 'ar'): string {
   const diff  = Date.now() - new Date(dateStr).getTime()
   const mins  = Math.floor(diff / 60000)
   const hours = Math.floor(diff / 3600000)
   const days  = Math.floor(diff / 86400000)
-  if (mins  < 1)  return lang === 'en' ? 'just now'       : 'الآن'
-  if (mins  < 60) return lang === 'en' ? `${mins}m ago`   : `منذ ${mins} دقيقة`
-  if (hours < 24) return lang === 'en' ? `${hours}h ago`  : `منذ ${hours} ساعة`
-  return lang === 'en' ? `${days}d ago` : `منذ ${days} يوم`
+  if (mins  < 1)  return lang === 'en' ? 'just now'      : 'الآن'
+  if (mins  < 60) return lang === 'en' ? `${mins}m ago`  : `منذ ${mins} د`
+  if (hours < 24) return lang === 'en' ? `${hours}h ago` : `منذ ${hours} س`
+  return lang === 'en' ? `${days}d ago` : `منذ ${days} ي`
+}
+
+function getGreeting(lang: 'en' | 'ar', name: string): string {
+  const h = new Date().getHours()
+  if (lang === 'ar') {
+    const g = h < 12 ? 'صباح الخير' : h < 17 ? 'مساء الخير' : 'مساء النور'
+    return name ? `${g}، ${name}` : g
+  }
+  const g = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening'
+  return name ? `${g}, ${name}` : g
 }
 
 function HomePage() {
-  const navigate = useNavigate();
-  const { lang } = useTheme();
-  const { user } = useAuth();
-  const [dashboards, setDashboards] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-  const [shareModalId, setShareModalId] = useState<string | null>(null);
-  const t = labels[lang];
+  const navigate = useNavigate()
+  const { lang } = useTheme()
+  const { user }  = useAuth()
+  const [dashboards,   setDashboards]   = useState<any[]>([])
+  const [loading,      setLoading]      = useState(true)
+  const [shareModalId, setShareModalId] = useState<string | null>(null)
 
-  // ── fetch only THIS user's dashboards from Supabase ──────────────────────
+  const name     = user?.user_metadata?.full_name || user?.email?.split('@')[0] || ''
+  const greeting = getGreeting(lang, name)
+
   useEffect(() => {
     if (!user) return
-    async function fetchDashboards() {
-      const { data, error } = await supabase
-        .from('dashboards')
-        .select('*')
-        .eq('user_id', user!.id)
-        .order('updated_at', { ascending: false })
-      if (!error && data) setDashboards(data)
-      setLoading(false)
-    }
-    fetchDashboards()
+    supabase
+      .from('dashboards')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('updated_at', { ascending: false })
+      .then(({ data, error }) => {
+        if (!error && data) setDashboards(data)
+        setLoading(false)
+      })
   }, [user])
 
-  // ── delete from Supabase ─────────────────────────────────────────────────
   async function handleDelete(id: string) {
     await supabase.from('dashboards').delete().eq('id', id)
     setDashboards(prev => prev.filter(d => d.id !== id))
   }
 
+  const t = {
+    en: {
+      countLine: (n: number) =>
+        n === 0 ? 'Your workspace is empty — create your first dashboard'
+                : `You have ${n} dashboard${n !== 1 ? 's' : ''} in your workspace`,
+      newBtn:  '+ New Dashboard',
+      section: 'Workspace',
+      newCard: 'New Dashboard',
+      newSub:  'Start from a template or blank canvas',
+    },
+    ar: {
+      countLine: (n: number) =>
+        n === 0 ? 'مساحة العمل فارغة — أنشئ أول لوحة تحكم'
+                : `لديك ${n} لوحة تحكم في مساحة العمل`,
+      newBtn:  '+ لوحة جديدة',
+      section: 'مساحة العمل',
+      newCard: 'لوحة جديدة',
+      newSub:  'ابدأ من قالب أو لوحة فارغة',
+    },
+  }[lang]
+
   if (loading) return <AppLoader />
 
   return (
-    <div style={{ minHeight: "100vh", background: "var(--page-bg)", display: "flex", flexDirection: "column" }}>
-      <Navbar onNewDashboard={() => navigate("/templates")} />
+    <div style={{
+      minHeight:       '100vh',
+      display:         'flex',
+      flexDirection:   'column',
+      background:      '#f1f5f9',
+      backgroundImage: 'radial-gradient(circle, #cbd5e1 1px, transparent 1px)',
+      backgroundSize:  '22px 22px',
+      direction:       lang === 'ar' ? 'rtl' : 'ltr',
+    }}>
 
-      <main style={{ maxWidth: "1200px", margin: "0 auto", padding: "40px 32px", flex: 1, width: "100%" }}>
+      {/* ── Navbar: أبيض full-width، sticky، rounded أسفل بس ── */}
+      <Navbar activeTab="dashboards" />
 
-        {/* Hero */}
-        <div style={{ marginBottom: '32px', paddingBottom: '24px', borderBottom: '1px solid var(--border)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '6px' }}>
-            <h1 style={{ fontSize: '32px', fontWeight: '800', color: 'var(--text-primary)', letterSpacing: '-0.6px', margin: 0 }}>
-              {t.title}
-            </h1>
-            <span style={{
-              width: '32px', height: '32px', borderRadius: '50%',
-              border: '1.5px solid var(--accent)', color: 'var(--accent)',
-              fontSize: '13px', fontWeight: '700',
-              display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-            }}>
-              {dashboards.length}
-            </span>
-          </div>
-          <p style={{ fontSize: '14px', color: 'var(--text-secondary)', maxWidth: '520px', lineHeight: '1.6', margin: 0 }}>
-            {t.subtitle}
-          </p>
-        </div>
+      {/* ── Main content: بيتسكرول عادي مع الـ body ── */}
+      <main style={{
+        flex:     1,
+        maxWidth: '1300px',
+        width:    '100%',
+        margin:   '0 auto',
+        padding:  '4px 40px 64px',
+      }}>
 
-        {/* Grid */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: "16px" }}>
-
-          {/* Create New Card */}
-          <div
-            onClick={() => navigate("/templates")}
-            style={{
-              background: "var(--surface)", border: "1.5px dashed var(--border-strong)",
-              borderRadius: "var(--radius-xl)", minHeight: "200px",
-              display: "flex", flexDirection: "column", alignItems: "center",
-              justifyContent: "center", gap: "8px", cursor: "pointer",
-              transition: "border-color 0.15s, background 0.15s",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = "var(--accent)";
-              e.currentTarget.style.background = "var(--accent-light)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = "var(--border-strong)";
-              e.currentTarget.style.background = "var(--surface)";
-            }}
-          >
-            <div style={{
-              width: "60px", height: "60px", borderRadius: "50%",
-              border: "1.5px solid var(--border-strong)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: "20px", color: "var(--text-muted)",
-            }}>
-              +
-            </div>
-            <div style={{ textAlign: "center" }}>
-              <p style={{ fontSize: "13px", fontWeight: "600", color: "var(--text-primary)", marginBottom: "2px" }}>
-                {t.newCard}
+          {/* ── Greeting ── */}
+          <div style={{
+            padding:        '40px 0 44px',
+            display:        'flex',
+            alignItems:     'flex-end',
+            justifyContent: 'space-between',
+            gap:            '24px',
+            flexWrap:       'wrap',
+          }}>
+            <div>
+              <p style={{
+                fontSize:    '13px',
+                color:       '#94a3b8',
+                margin:      '0 0 10px',
+                fontWeight:  '500',
+                letterSpacing: '0.1px',
+              }}>
+                {greeting}
               </p>
-              <p style={{ fontSize: "12px", color: "var(--text-muted)" }}>
-                {t.newSub}
-              </p>
+              <h1 style={{
+                fontSize:      '28px',
+                fontWeight:    '700',
+                color:         '#0f172a',
+                margin:        '0',
+                letterSpacing: '-0.5px',
+                lineHeight:    1.2,
+              }}>
+                {t.countLine(dashboards.length)}
+              </h1>
             </div>
-          </div>
 
-          {/* Dashboard Cards */}
-          {dashboards.map((dashboard) => (
-            <DashboardCard
-              key={dashboard.id}
-              dashboard={{
-                id:           dashboard.id,
-                title:        dashboard.title,
-                description:  '',
-                editedAt:     timeAgo(dashboard.updated_at, lang),
-                widgetCount:  dashboard.widgets?.length ?? 0,
-                thumbnailUrl: 'https://images.unsplash.com/photo-1524661135-423995f22d0b?w=600&q=80',
-                status:       'live',
+            {/* CTA */}
+            <button
+              onClick={() => navigate('/templates')}
+              style={{
+                padding:      '9px 20px',
+                background:   '#0ea5e9',
+                border:       'none',
+                borderRadius: '40px',
+                fontSize:     '13px',
+                fontWeight:   '600',
+                color:        '#fff',
+                cursor:       'pointer',
+                boxShadow:    '0 2px 12px rgba(14,165,233,0.28)',
+                transition:   'background 0.15s, transform 0.12s',
+                display:      'flex',
+                alignItems:   'center',
+                gap:          '6px',
+                flexShrink:   0,
               }}
-              onOpen={    id => navigate(`/builder/${id}`)}
-              onEdit={    id => navigate(`/builder/${id}`)}
-              onPreview={ id => navigate(`/dashboard/${id}`)}
-              onShare={   id => setShareModalId(id)}
-              onDelete={handleDelete}
-            />
-          ))}
-        </div>
-      </main>
+              onMouseEnter={e => { e.currentTarget.style.background = '#0284c7'; e.currentTarget.style.transform = 'translateY(-1px)' }}
+              onMouseLeave={e => { e.currentTarget.style.background = '#0ea5e9'; e.currentTarget.style.transform = 'translateY(0)' }}
+            >
+              <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+                <path d="M6.5 1v11M1 6.5h11"/>
+              </svg>
+              {t.newBtn}
+            </button>
+          </div>
+
+          {/* ── Section label ── */}
+          <div style={{ marginBottom: '18px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <span style={{
+              fontSize:      '12px',
+              fontWeight:    '600',
+              color:         '#94a3b8',
+              letterSpacing: '0.8px',
+              textTransform: 'uppercase',
+            }}>
+              {t.section}
+            </span>
+            <div style={{ flex: 1, height: '1px', background: 'rgba(203,213,225,0.6)' }} />
+          </div>
+
+          {/* ── Cards grid ── */}
+          <div style={{
+            display:             'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(265px, 1fr))',
+            gap:                 '16px',
+          }}>
+
+            {/* New dashboard card */}
+            <div
+              onClick={() => navigate('/templates')}
+              style={{
+                background:     'rgba(255,255,255,0.70)',
+                border:         '1.5px dashed #cbd5e1',
+                borderRadius:   '14px',
+                minHeight:      '228px',
+                display:        'flex',
+                flexDirection:  'column',
+                alignItems:     'center',
+                justifyContent: 'center',
+                gap:            '10px',
+                cursor:         'pointer',
+                transition:     'border-color 0.2s, background 0.2s, transform 0.18s',
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.borderColor = '#0ea5e9'
+                e.currentTarget.style.background  = 'rgba(240,249,255,0.85)'
+                e.currentTarget.style.transform   = 'translateY(-2px)'
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.borderColor = '#cbd5e1'
+                e.currentTarget.style.background  = 'rgba(255,255,255,0.70)'
+                e.currentTarget.style.transform   = 'translateY(0)'
+              }}
+            >
+              <div style={{
+                width:        '42px',
+                height:       '42px',
+                borderRadius: '12px',
+                background:   'rgba(255,255,255,0.88)',
+                border:       '1px solid #e2e8f0',
+                display:      'flex',
+                alignItems:   'center',
+                justifyContent: 'center',
+                color:        '#94a3b8',
+              }}>
+                <svg width="18" height="18" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+                  <path d="M6.5 1v11M1 6.5h11"/>
+                </svg>
+              </div>
+              <div style={{ textAlign: 'center' }}>
+                <p style={{ fontSize: '13px', fontWeight: '600', color: '#374151', margin: '0 0 4px' }}>{t.newCard}</p>
+                <p style={{ fontSize: '11px', color: '#94a3b8', margin: 0 }}>{t.newSub}</p>
+              </div>
+            </div>
+
+            {/* Dashboard cards */}
+            {dashboards.map(d => (
+              <DashboardCard
+                key={d.id}
+                dashboard={{
+                  id:           d.id,
+                  title:        d.title,
+                  description:  '',
+                  editedAt:     timeAgo(d.updated_at, lang),
+                  widgetCount:  d.widgets?.length ?? 0,
+                  thumbnailUrl: '',
+                  status:       'live',
+                  isPublic:     d.is_public,
+                }}
+                onOpen={   id => navigate(`/builder/${id}`)}
+                onEdit={   id => navigate(`/builder/${id}`)}
+                onPreview={ id => navigate(`/dashboard/${id}`)}
+                onShare={  id => setShareModalId(id)}
+                onDelete={handleDelete}
+              />
+            ))}
+          </div>
+        </main>
 
       {shareModalId && (
         <ShareModal dashboardId={shareModalId} onClose={() => setShareModalId(null)} />
       )}
+
+      {/* ── Footer ── */}
       <Footer />
+
     </div>
-  );
+  )
 }
 
-export default HomePage;
+export default HomePage

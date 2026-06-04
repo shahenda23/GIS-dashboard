@@ -17,11 +17,13 @@ interface MapWidgetProps {
   config: Partial<MapConfig>
 }
 
+const MT = process.env.REACT_APP_MAPTILER_KEY ?? ''
+
 export const MAP_STYLES = [
-  { value: 'https://tiles.openfreemap.org/styles/liberty',  label: 'Liberty' },
-  { value: 'https://tiles.openfreemap.org/styles/bright',   label: 'Bright' },
-  { value: 'https://tiles.openfreemap.org/styles/positron', label: 'Positron' },
-  { value: 'https://tiles.openfreemap.org/styles/fiord',    label: 'Fiord (Dark)' },
+  { value: `https://api.maptiler.com/maps/streets/style.json?key=${MT}`,       label: 'Streets' },
+  { value: `https://api.maptiler.com/maps/bright/style.json?key=${MT}`,        label: 'Bright' },
+  { value: `https://api.maptiler.com/maps/positron/style.json?key=${MT}`,      label: 'Positron' },
+  { value: `https://api.maptiler.com/maps/dataviz-dark/style.json?key=${MT}`,  label: 'Dark' },
 ]
 
 // ── BBox from GeoJSON ─────────────────────────────────────────────────────────

@@ -112,7 +112,7 @@ export default function DashboardViewPage() {
       loadDashboard(id).then(() => {
         const state = useBuilderStore.getState()
         if (state.dashboardId !== id) {
-          setStatus('denied')
+          setStatus('notfound')
         } else if (!state.isPublic && user?.id !== state.ownerId) {
           setStatus('denied')
         } else {

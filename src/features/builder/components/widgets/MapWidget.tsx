@@ -1,9 +1,6 @@
 import { useEffect, useRef } from 'react'
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-maplibregl.workerUrl = `${process.env.PUBLIC_URL ?? ''}/maplibre-gl-csp-worker.js`
 import { MapConfig } from '../../types/builder.types'
 import { useBuilderStore } from '../../store/builderStore'
 import { getLayerHandler } from './map/layerRegistry'
@@ -239,52 +236,28 @@ function MapWidget({ widgetId, config }: MapWidgetProps) {
   useEffect(() => {
     if (mapRef.current || !mapContainer.current) return
 
-    async function resolveStyle(url: string) {
-      const style = await fetch(url).then(r => r.json())
-      await Promise.all(
-        Object.values(style.sources).map(async (src: any) => {
-          if (src.type === 'vector' && src.url) {
-            try {
-              const tj = await fetch(src.url).then(r => r.json())
-              delete src.url
-              src.tiles   = tj.tiles
-              src.minzoom = tj.minzoom ?? 0
-              src.maxzoom = tj.maxzoom ?? 22
-            } catch {}
-          }
-        })
-      )
-      return style
-    }
-
-    resolveStyle(mapStyle).then(style => {
-      if (mapRef.current || !mapContainer.current) return
-
-      const map = new maplibregl.Map({
-        container: mapContainer.current,
-        style,
-        center,
-        zoom,
-        attributionControl: false,
-      })
-
-      map.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-right')
-
-      map.on('load', () => {
-        isLoaded.current = true
-        syncLayers(map, storeLayers, prevLayerIds, showLegendRef.current, showPopupRef, getConfig)
-      })
-
-      mapRef.current = map
+    const map = new maplibregl.Map({
+      container: mapContainer.current,
+      style: mapStyle,
+      center,
+      zoom,
+      attributionControl: false,
     })
+
+    map.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-right')
+
+    map.on('load', () => {
+      isLoaded.current = true
+      syncLayers(map, storeLayers, prevLayerIds, showLegendRef.current, showPopupRef, getConfig)
+    })
+
+    mapRef.current = map
 
     return () => {
       isLoaded.current = false
       prevLayerIds.current = new Set()
-      if (mapRef.current) {
-        mapRef.current.remove()
-        mapRef.current = null
-      }
+      map.remove()
+      mapRef.current = null
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])

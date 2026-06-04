@@ -283,12 +283,12 @@ function MapWidget({ widgetId, config }: MapWidgetProps) {
     isLoaded.current = false
     map.setStyle(mapStyle)
     map.once('style.load', () => {
-      isLoaded.current = true
       prevLayerIds.current = new Set()
-      // defer by one tick — lets MapLibre finish building sourceCaches
-      // before we call addSource/addLayer (avoids style-race errors)
+      // isLoaded stays false until the timeout fires —
+      // prevents effect-9 from calling syncLayers in the same tick
       setTimeout(() => {
         if (!mapRef.current) return
+        isLoaded.current = true
         syncLayers(map, useBuilderStore.getState().layers, prevLayerIds, showLegendRef.current, showPopupRef, getConfig)
       }, 0)
     })

@@ -6,31 +6,6 @@ import { useBuilderStore } from '../../store/builderStore'
 import { getLayerHandler } from './map/layerRegistry'
 import { getGeometryType } from './map/handlers/GeoJsonHandler'
 
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-maplibregl.workerUrl = `${process.env.PUBLIC_URL ?? ''}/maplibre-gl-csp-worker.js`
-
-// Module-level: pre-fetches TileJSON so MapLibre receives direct tile URLs
-// instead of a TileJSON url — eliminates the worker race condition where
-// tile requests arrive before the source is registered in the worker context.
-async function resolveStyle(url: string): Promise<any> {
-  const style = await fetch(url).then((r) => r.json())
-  await Promise.all(
-    Object.values(style.sources as Record<string, any>).map(async (src) => {
-      if (src.type === 'vector' && src.url) {
-        try {
-          const tj = await fetch(src.url).then((r) => r.json())
-          delete src.url
-          src.tiles   = tj.tiles
-          src.minzoom = tj.minzoom ?? 0
-          src.maxzoom = tj.maxzoom ?? 22
-        } catch {}
-      }
-    })
-  )
-  return style
-}
-
 interface MapWidgetProps {
   widgetId: string
   config: Partial<MapConfig>
@@ -38,12 +13,34 @@ interface MapWidgetProps {
 
 const MT = process.env.REACT_APP_MAPTILER_KEY ?? ''
 
-export const MAP_STYLES = [
-  { value: `https://api.maptiler.com/maps/streets/style.json?key=${MT}`,       label: 'Streets' },
-  { value: `https://api.maptiler.com/maps/bright/style.json?key=${MT}`,        label: 'Bright' },
-  { value: `https://api.maptiler.com/maps/positron/style.json?key=${MT}`,      label: 'Positron' },
-  { value: `https://api.maptiler.com/maps/dataviz-dark/style.json?key=${MT}`,  label: 'Dark' },
-]
+// export const MAP_STYLES = [
+//   { value: `https://api.maptiler.com/maps/streets/style.json?key=${MT}`,       label: 'Streets' },
+//   { value: `https://api.maptiler.com/maps/bright/style.json?key=${MT}`,        label: 'Bright' },
+//   { value: `https://api.maptiler.com/maps/positron/style.json?key=${MT}`,      label: 'Positron' },
+//   { value: `https://api.maptiler.com/maps/dataviz-dark/style.json?key=${MT}`,  label: 'Dark' },
+// ]
+
+export const MAP_STYLES = {
+  version: 8,
+  sources: {
+    'satellite': {
+      type: 'raster',
+      tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],
+      tileSize: 256,
+      attribution: 'Tiles © Esri — Source: Esri, DigitalGlobe, GeoEye, Earthstar Geographics, CNES/Airbus DS, USDA, USGS, AeroGRID, IGN',
+      maxzoom: 19,
+    },
+  },
+  layers: [
+    {
+      id: 'satellite-layer',
+      type: 'raster',
+      source: 'satellite',
+      minzoom: 0,
+      maxzoom: 22,
+    },
+  ],
+};
 
 // ── BBox from GeoJSON ─────────────────────────────────────────────────────────
 function getBBox(data: any): [[number, number], [number, number]] | null {
@@ -260,37 +257,70 @@ function MapWidget({ widgetId, config }: MapWidgetProps) {
   // ── 1. Initialize map ─────────────────────────────────
   useEffect(() => {
     if (mapRef.current || !mapContainer.current) return
-    let cancelled = false
 
-    resolveStyle(mapStyle).then((style) => {
-      if (cancelled || !mapContainer.current) return
+    // console.log('[MapWidget] init — style URL:', mapStyle)
 
-      const map = new maplibregl.Map({
-        container: mapContainer.current,
-        style,
-        center,
-        zoom,
-        attributionControl: false,
+    // const map = new maplibregl.Map({
+    //   container: mapContainer.current,
+    //   style: mapStyle,
+    //   center,
+    //   zoom,
+    //   attributionControl: false,
+    // })
+    async function resolveStyle(url: string) {
+    const style = await fetch(url).then(r => r.json())
+    await Promise.all(
+      Object.values(style.sources).map(async (src: any) => {
+        if (src.type === 'vector' && src.url) {
+          try {
+            const tj = await fetch(src.url).then(r => r.json())
+            delete src.url
+            src.tiles   = tj.tiles
+            src.minzoom = tj.minzoom ?? 0
+            src.maxzoom = tj.maxzoom ?? 22
+          } catch {}
+        }
       })
+    )
+    return style
+  }
 
-      map.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-right')
+  resolveStyle(mapStyle).then(style => {
+    if (mapRef.current || !mapContainer.current) return
 
-      map.on('load', () => {
-        isLoaded.current = true
-        syncLayers(map, storeLayers, prevLayerIds, showLegendRef.current, showPopupRef, getConfig)
+    const map = new maplibregl.Map({
+      container: mapContainer.current,
+      style: style,
+      center,
+      zoom,
+      attributionControl: false,
+    })
+
+    map.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-right')
+
+    map.on('error', (e) => {
+      console.error('[MapWidget] map error:', e.error?.message ?? e)
+    })
+
+    map.on('style.load', () => {
+      const sources = map.getStyle()?.sources ?? {}
+      Object.entries(sources).forEach(([id, src]: [string, any]) => {
+        console.log(`[MapWidget] source "${id}" — type: ${src.type}, url: ${src.url ?? src.tiles ?? '(inline)'}`)
       })
+    })
 
-      mapRef.current = map
-    }).catch(() => {})
+    map.on('load', () => {
+      isLoaded.current = true
+      syncLayers(map, storeLayers, prevLayerIds, showLegendRef.current, showPopupRef, getConfig)
+    })
 
+    mapRef.current = map
+     })
     return () => {
-      cancelled = true
       isLoaded.current = false
       prevLayerIds.current = new Set()
-      if (mapRef.current) {
-        mapRef.current.remove()
-        mapRef.current = null
-      }
+      mapRef.current?.remove()
+      mapRef.current = null
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])

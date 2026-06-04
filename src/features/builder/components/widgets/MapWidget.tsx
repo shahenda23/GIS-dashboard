@@ -1,9 +1,6 @@
 import { useEffect, useRef } from 'react'
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
-
-// CRA bundles the MapLibre worker incorrectly in production builds.
-// Serve the worker from /public so it matches the installed version exactly.
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 maplibregl.workerUrl = `${process.env.PUBLIC_URL ?? ''}/maplibre-gl-csp-worker.js`

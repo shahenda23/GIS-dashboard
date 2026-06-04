@@ -6,6 +6,31 @@ import { useBuilderStore } from '../../store/builderStore'
 import { getLayerHandler } from './map/layerRegistry'
 import { getGeometryType } from './map/handlers/GeoJsonHandler'
 
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+maplibregl.workerUrl = `${process.env.PUBLIC_URL ?? ''}/maplibre-gl-csp-worker.js`
+
+// Module-level: pre-fetches TileJSON so MapLibre receives direct tile URLs
+// instead of a TileJSON url — eliminates the worker race condition where
+// tile requests arrive before the source is registered in the worker context.
+async function resolveStyle(url: string): Promise<any> {
+  const style = await fetch(url).then((r) => r.json())
+  await Promise.all(
+    Object.values(style.sources as Record<string, any>).map(async (src) => {
+      if (src.type === 'vector' && src.url) {
+        try {
+          const tj = await fetch(src.url).then((r) => r.json())
+          delete src.url
+          src.tiles   = tj.tiles
+          src.minzoom = tj.minzoom ?? 0
+          src.maxzoom = tj.maxzoom ?? 22
+        } catch {}
+      }
+    })
+  )
+  return style
+}
+
 interface MapWidgetProps {
   widgetId: string
   config: Partial<MapConfig>
@@ -235,29 +260,37 @@ function MapWidget({ widgetId, config }: MapWidgetProps) {
   // ── 1. Initialize map ─────────────────────────────────
   useEffect(() => {
     if (mapRef.current || !mapContainer.current) return
+    let cancelled = false
 
-    const map = new maplibregl.Map({
-      container: mapContainer.current,
-      style: mapStyle,
-      center,
-      zoom,
-      attributionControl: false,
-    })
+    resolveStyle(mapStyle).then((style) => {
+      if (cancelled || !mapContainer.current) return
 
-    map.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-right')
+      const map = new maplibregl.Map({
+        container: mapContainer.current,
+        style,
+        center,
+        zoom,
+        attributionControl: false,
+      })
 
-    map.on('load', () => {
-      isLoaded.current = true
-      syncLayers(map, storeLayers, prevLayerIds, showLegendRef.current, showPopupRef, getConfig)
-    })
+      map.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-right')
 
-    mapRef.current = map
+      map.on('load', () => {
+        isLoaded.current = true
+        syncLayers(map, storeLayers, prevLayerIds, showLegendRef.current, showPopupRef, getConfig)
+      })
+
+      mapRef.current = map
+    }).catch(() => {})
 
     return () => {
+      cancelled = true
       isLoaded.current = false
       prevLayerIds.current = new Set()
-      map.remove()
-      mapRef.current = null
+      if (mapRef.current) {
+        mapRef.current.remove()
+        mapRef.current = null
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])

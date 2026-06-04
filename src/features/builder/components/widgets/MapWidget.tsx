@@ -242,6 +242,8 @@ function MapWidget({ widgetId, config }: MapWidgetProps) {
   useEffect(() => {
     if (mapRef.current || !mapContainer.current) return
 
+    console.log('[MapWidget] init — style URL:', mapStyle)
+
     const map = new maplibregl.Map({
       container: mapContainer.current,
       style: mapStyle,
@@ -251,6 +253,17 @@ function MapWidget({ widgetId, config }: MapWidgetProps) {
     })
 
     map.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-right')
+
+    map.on('error', (e) => {
+      console.error('[MapWidget] map error:', e.error?.message ?? e)
+    })
+
+    map.on('style.load', () => {
+      const sources = map.getStyle()?.sources ?? {}
+      Object.entries(sources).forEach(([id, src]: [string, any]) => {
+        console.log(`[MapWidget] source "${id}" — type: ${src.type}, url: ${src.url ?? src.tiles ?? '(inline)'}`)
+      })
+    })
 
     map.on('load', () => {
       isLoaded.current = true

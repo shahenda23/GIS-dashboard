@@ -280,10 +280,17 @@ function MapWidget({ widgetId, config }: MapWidgetProps) {
   useEffect(() => {
     const map = mapRef.current
     if (!map || !isLoaded.current) return
+    isLoaded.current = false
     map.setStyle(mapStyle)
     map.once('style.load', () => {
+      isLoaded.current = true
       prevLayerIds.current = new Set()
-      syncLayers(map, storeLayers, prevLayerIds, showLegendRef.current, showPopupRef, getConfig)
+      // defer by one tick — lets MapLibre finish building sourceCaches
+      // before we call addSource/addLayer (avoids style-race errors)
+      setTimeout(() => {
+        if (!mapRef.current) return
+        syncLayers(map, useBuilderStore.getState().layers, prevLayerIds, showLegendRef.current, showPopupRef, getConfig)
+      }, 0)
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mapStyle])

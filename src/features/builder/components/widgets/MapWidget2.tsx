@@ -1,39 +1,53 @@
 import { useEffect, useRef } from 'react'
-import * as maptilersdk from '@maptiler/sdk';
-import "@maptiler/sdk/dist/maptiler-sdk.css";
 import maplibregl from 'maplibre-gl'
-import { MapConfig } from '../../types/builder.types'
+import 'maplibre-gl/dist/maplibre-gl.css'
 
-maptilersdk.config.apiKey = 'ydeUYqeXv8WFtyvDNyef';
 // @ts-ignore
 maplibregl.workerUrl = `${process.env.PUBLIC_URL ?? ''}/maplibre-gl-csp-worker.js`
 
-interface MapWidgetProps {
-  widgetId: string
-  config: Partial<MapConfig>
+const MAP_STYLE: maplibregl.StyleSpecification = {
+  version: 8,
+  sources: {
+    satellite: {
+      type: 'raster',
+      tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],
+      tileSize: 256,
+      attribution: 'Tiles © Esri',
+      maxzoom: 19,
+    },
+  },
+  layers: [
+    {
+      id: 'satellite-layer',
+      type: 'raster',
+      source: 'satellite',
+      minzoom: 0,
+      maxzoom: 22,
+    },
+  ],
 }
 
-function MapWidget2(_props: MapWidgetProps) {
+function MapWidget2() {
+  const mapContainer = useRef<HTMLDivElement>(null)
+  const mapInstance = useRef<maplibregl.Map | null>(null)
 
-    const mapContainer = useRef<HTMLDivElement>(null);
-    const mapInstance = useRef<maptilersdk.Map | null>(null);
+  useEffect(() => {
+    if (!mapContainer.current || mapInstance.current) return
 
-    useEffect(() => {
-        if (!mapContainer.current || mapInstance.current) return;
+    mapInstance.current = new maplibregl.Map({
+      container: mapContainer.current,
+      style: MAP_STYLE,
+      center: [0, 0],
+      zoom: 2,
+    })
 
-        mapInstance.current = new maptilersdk.Map({
-            container: mapContainer.current,
-            style: 'https://api.maptiler.com/maps/streets-v4/style.json?key=ydeUYqeXv8WFtyvDNyef',
-            center: [0, 0],
-            zoom: 2,
-        });
+    return () => {
+      mapInstance.current?.remove()
+      mapInstance.current = null
+    }
+  }, [])
 
-        return () => {
-            mapInstance.current?.remove();
-            mapInstance.current = null;
-        };
-    }, []);
-
-    return <div ref={mapContainer} style={{ width: '100%', height: '100%' }} />;
+  return <div ref={mapContainer} style={{ width: '100%', height: '100%' }} />
 }
+
 export default MapWidget2

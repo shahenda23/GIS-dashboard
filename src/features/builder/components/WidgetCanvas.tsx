@@ -15,7 +15,7 @@ import { ReactComponent as FilterIcon }   from '../../../assets/icons/filter.svg
 import { useTheme } from '../../../context/ThemeContext'
 import { useBuilderStore } from '../store/builderStore'
 import { Widget, WidgetType } from '../types/builder.types'
-import MapWidget from './widgets/MapWidget'
+import MapWidget from './widgets/MapWidget2'
 import ChartWidget from './widgets/ChartWidget'
 import TableWidget from './widgets/TableWidget'
 import KPIWidget from './widgets/KPIWidget'

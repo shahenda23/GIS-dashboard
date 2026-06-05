@@ -134,6 +134,7 @@ export interface MapConfig {
   allowPan: boolean
   showLegend: boolean
   showPopup: boolean
+  showBasemapGallery: boolean
   popupTitleField?: string
   popupFields?: PopupFieldConfig[]
 }

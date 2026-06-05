@@ -7,7 +7,7 @@ import SettingsSection from '../shared/SettingsSection'
 import LayerSelect from '../shared/LayerSelect'
 import SliderInput from '../shared/SliderInput'
 import ToggleSwitch from '../shared/ToggleSwitch'
-import { MAP_STYLES } from '../../widgets/MapWidget'
+import { BASEMAP_STYLES } from '../../widgets/map/BasemapGallery'
 
 interface MapSettingsProps {
   widgetId: string
@@ -46,6 +46,8 @@ function MapSettings({ widgetId, config }: MapSettingsProps) {
       popup: 'Show Feature Popup',
       popupDesc: 'Shows a popup with feature info when clicking on the map',
       legendDesc: 'Shows a panel listing the visible map layers',
+      basemapGallery: 'Show Basemap Gallery',
+      basemapGalleryDesc: 'Shows the basemap switcher panel on the map',
       allowZoom: 'Allow User Zoom',
       allowZoomDesc: 'User can zoom in/out with scroll or pinch',
       allowPan: 'Allow User Pan',
@@ -63,6 +65,8 @@ function MapSettings({ widgetId, config }: MapSettingsProps) {
       popupDesc: 'يعرض نافذة منبثقة مع معلومات الميزات عند النقر على الخريطة',
       legend: 'إظهار المفتاح',
       legendDesc: 'يعرض لوحة بأسماء الطبقات المرئية على الخريطة',
+      basemapGallery: 'إظهار معرض الخرائط الأساسية',
+      basemapGalleryDesc: 'يعرض لوحة تبديل الخريطة الأساسية على الخريطة',
       allowZoom: 'السماح بالتكبير',
       allowZoomDesc: 'يمكن للمستخدم التكبير بالتمرير أو القرص',
       allowPan: 'السماح بالتحريك',
@@ -94,19 +98,19 @@ function MapSettings({ widgetId, config }: MapSettingsProps) {
 
           <SettingsSection title={t.style}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              {MAP_STYLES.map(style => (
+              {BASEMAP_STYLES.map(style => (
                 <label
-                  key={style.value}
+                  key={style.id}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
                     gap: '8px',
                     padding: '8px 10px',
                     borderRadius: 'var(--radius-md)',
-                    border: `1px solid ${(config.mapStyle ?? MAP_STYLES[0].value) === style.value
+                    border: `1px solid ${(config.mapStyle ?? BASEMAP_STYLES[0].id) === style.id
                       ? 'var(--accent)'
                       : 'var(--border)'}`,
-                    background: (config.mapStyle ?? MAP_STYLES[0].value) === style.value
+                    background: (config.mapStyle ?? BASEMAP_STYLES[0].id) === style.id
                       ? 'var(--accent-light)'
                       : 'var(--page-bg)',
                     cursor: 'pointer',
@@ -118,9 +122,9 @@ function MapSettings({ widgetId, config }: MapSettingsProps) {
                   <input
                     type="radio"
                     name="mapStyle"
-                    value={style.value}
-                    checked={(config.mapStyle ?? MAP_STYLES[0].value) === style.value}
-                    onChange={() => updateConfig({ mapStyle: style.value })}
+                    value={style.id}
+                    checked={(config.mapStyle ?? BASEMAP_STYLES[0].id) === style.id}
+                    onChange={() => updateConfig({ mapStyle: style.id })}
                     style={{ accentColor: 'var(--accent)' }}
                   />
                   {style.label}
@@ -162,6 +166,12 @@ function MapSettings({ widgetId, config }: MapSettingsProps) {
             value={config.showPopup ?? true}
             onChange={v => updateConfig({ showPopup: v })}
             description={t.popupDesc}
+          />
+          <ToggleSwitch
+            label={t.basemapGallery}
+            value={config.showBasemapGallery ?? true}
+            onChange={v => updateConfig({ showBasemapGallery: v })}
+            description={t.basemapGalleryDesc}
           />
 
           {config.showPopup && availableFields.length > 0 && (

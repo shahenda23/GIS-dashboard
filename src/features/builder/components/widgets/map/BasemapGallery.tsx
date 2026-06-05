@@ -1,30 +1,32 @@
+import { useState } from 'react'
+
 export type StyleEntry =
   | { id: string; label: string; type: 'vector'; url: string; preview: string }
   | { id: string; label: string; type: 'raster'; tiles: string[]; attribution: string; preview: string }
 
 export const BASEMAP_STYLES: StyleEntry[] = [
   // ── Vector (CARTO GL — free, no API key) ────────────────────────────
-  {
-    id: 'vec-voyager',
-    label: 'Voyager',
-    type: 'vector',
-    url: 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json',
-    preview: 'https://a.basemaps.cartocdn.com/rastertiles/voyager/2/1/1.png',
-  },
-  {
-    id: 'vec-positron',
-    label: 'Positron',
-    type: 'vector',
-    url: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
-    preview: 'https://a.basemaps.cartocdn.com/light_all/2/1/1.png',
-  },
-  {
-    id: 'vec-dark',
-    label: 'Dark Matter',
-    type: 'vector',
-    url: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
-    preview: 'https://a.basemaps.cartocdn.com/dark_all/2/1/1.png',
-  },
+  // {
+  //   id: 'vec-voyager',
+  //   label: 'Voyager',
+  //   type: 'vector',
+  //   url: 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json',
+  //   preview: 'https://a.basemaps.cartocdn.com/rastertiles/voyager/2/1/1.png',
+  // },
+  // {
+  //   id: 'vec-positron',
+  //   label: 'Positron',
+  //   type: 'vector',
+  //   url: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
+  //   preview: 'https://a.basemaps.cartocdn.com/light_all/2/1/1.png',
+  // },
+  // {
+  //   id: 'vec-dark',
+  //   label: 'Dark Matter',
+  //   type: 'vector',
+  //   url: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
+  //   preview: 'https://a.basemaps.cartocdn.com/dark_all/2/1/1.png',
+  // },
   // ── Raster ──────────────────────────────────────────────────────────
   {
     id: 'satellite',
@@ -74,23 +76,51 @@ interface BasemapGalleryProps {
 }
 
 function BasemapGallery({ activeId, onSelect }: BasemapGalleryProps) {
+  const [open, setOpen] = useState(false)
+
   return (
-    <div style={{
-      position:       'absolute',
-      bottom:         20,
-      left:           '50%',
-      transform:      'translateX(-50%)',
-      display:        'flex',
-      gap:            8,
-      padding:        '8px 12px',
-      background:     'rgba(255,255,255,0.88)',
-      backdropFilter: 'blur(12px)',
-      borderRadius:   16,
-      boxShadow:      '0 4px 24px rgba(0,0,0,0.15)',
-      overflowX:      'auto',
-      maxWidth:       '90vw',
-      zIndex:         10,
-    }}>
+    <div style={{ position: 'absolute', bottom: 20, left: '50%', transform: 'translateX(-50%)', zIndex: 10, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+
+      {/* Toggle button */}
+      <button
+        onClick={() => setOpen(o => !o)}
+        title="Basemap gallery"
+        style={{
+          width:          32,
+          height:         32,
+          borderRadius:   '50%',
+          border:         'none',
+          background:     open ? '#0ea5e9' : 'rgba(255,255,255,0.88)',
+          color:          open ? '#fff' : '#334155',
+          boxShadow:      '0 2px 10px rgba(0,0,0,0.18)',
+          cursor:         'pointer',
+          display:        'flex',
+          alignItems:     'center',
+          justifyContent: 'center',
+          backdropFilter: 'blur(12px)',
+          transition:     'background 0.15s, color 0.15s',
+          alignSelf:      'flex-end',
+          marginRight:    8,
+        }}
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/>
+          <line x1="9" y1="3" x2="9" y2="18"/>
+          <line x1="15" y1="6" x2="15" y2="21"/>
+        </svg>
+      </button>
+
+      {open && <div style={{
+        display:        'flex',
+        gap:            8,
+        padding:        '8px 12px',
+        background:     'rgba(255,255,255,0.88)',
+        backdropFilter: 'blur(12px)',
+        borderRadius:   16,
+        boxShadow:      '0 4px 24px rgba(0,0,0,0.15)',
+        overflowX:      'auto',
+        maxWidth:       '90vw',
+      }}>
       {BASEMAP_STYLES.map(s => (
         <button
           key={s.id}
@@ -141,6 +171,7 @@ function BasemapGallery({ activeId, onSelect }: BasemapGalleryProps) {
           </span>
         </button>
       ))}
+      </div>}
     </div>
   )
 }

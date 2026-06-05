@@ -1,6 +1,6 @@
 import type { MutableRefObject } from 'react'
 import maplibregl from 'maplibre-gl'
-import type { GeoLayer, MapConfig } from '../../../../../types/builder.types'
+import type { GeoLayer, MapConfig } from '../../../../types/builder.types'
 import type { LayerHandler } from '../LayerHandler'
 
 export function getGeometryType(data: any): string {

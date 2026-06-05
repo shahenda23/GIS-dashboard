@@ -1,6 +1,12 @@
 import { useEffect, useRef } from 'react'
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
+
+// CRA bundles the MapLibre worker incorrectly in production builds.
+// Serve the worker from /public so it matches the installed version exactly.
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+maplibregl.workerUrl = `${process.env.PUBLIC_URL ?? ''}/maplibre-gl-csp-worker.js`
 import { MapConfig } from '../../types/builder.types'
 import { useBuilderStore } from '../../store/builderStore'
 import { getLayerHandler } from './map/layerRegistry'
@@ -11,36 +17,12 @@ interface MapWidgetProps {
   config: Partial<MapConfig>
 }
 
-const MT = process.env.REACT_APP_MAPTILER_KEY ?? ''
-
-// export const MAP_STYLES = [
-//   { value: `https://api.maptiler.com/maps/streets/style.json?key=${MT}`,       label: 'Streets' },
-//   { value: `https://api.maptiler.com/maps/bright/style.json?key=${MT}`,        label: 'Bright' },
-//   { value: `https://api.maptiler.com/maps/positron/style.json?key=${MT}`,      label: 'Positron' },
-//   { value: `https://api.maptiler.com/maps/dataviz-dark/style.json?key=${MT}`,  label: 'Dark' },
-// ]
-
-export const MAP_STYLES = {
-  version: 8,
-  sources: {
-    'satellite': {
-      type: 'raster',
-      tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],
-      tileSize: 256,
-      attribution: 'Tiles © Esri — Source: Esri, DigitalGlobe, GeoEye, Earthstar Geographics, CNES/Airbus DS, USDA, USGS, AeroGRID, IGN',
-      maxzoom: 19,
-    },
-  },
-  layers: [
-    {
-      id: 'satellite-layer',
-      type: 'raster',
-      source: 'satellite',
-      minzoom: 0,
-      maxzoom: 22,
-    },
-  ],
-};
+export const MAP_STYLES = [
+  { value: 'https://tiles.openfreemap.org/styles/liberty',  label: 'Liberty' },
+  { value: 'https://tiles.openfreemap.org/styles/bright',   label: 'Bright' },
+  { value: 'https://tiles.openfreemap.org/styles/positron', label: 'Positron' },
+  { value: 'https://tiles.openfreemap.org/styles/fiord',    label: 'Fiord (Dark)' },
+]
 
 // ── BBox from GeoJSON ─────────────────────────────────────────────────────────
 function getBBox(data: any): [[number, number], [number, number]] | null {
@@ -258,39 +240,9 @@ function MapWidget({ widgetId, config }: MapWidgetProps) {
   useEffect(() => {
     if (mapRef.current || !mapContainer.current) return
 
-    // console.log('[MapWidget] init — style URL:', mapStyle)
-
-    // const map = new maplibregl.Map({
-    //   container: mapContainer.current,
-    //   style: mapStyle,
-    //   center,
-    //   zoom,
-    //   attributionControl: false,
-    // })
-    async function resolveStyle(url: string) {
-    const style = await fetch(url).then(r => r.json())
-    await Promise.all(
-      Object.values(style.sources).map(async (src: any) => {
-        if (src.type === 'vector' && src.url) {
-          try {
-            const tj = await fetch(src.url).then(r => r.json())
-            delete src.url
-            src.tiles   = tj.tiles
-            src.minzoom = tj.minzoom ?? 0
-            src.maxzoom = tj.maxzoom ?? 22
-          } catch {}
-        }
-      })
-    )
-    return style
-  }
-
-  resolveStyle(mapStyle).then(style => {
-    if (mapRef.current || !mapContainer.current) return
-
     const map = new maplibregl.Map({
       container: mapContainer.current,
-      style: style,
+      style: mapStyle,
       center,
       zoom,
       attributionControl: false,
@@ -298,28 +250,17 @@ function MapWidget({ widgetId, config }: MapWidgetProps) {
 
     map.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-right')
 
-    map.on('error', (e) => {
-      console.error('[MapWidget] map error:', e.error?.message ?? e)
-    })
-
-    map.on('style.load', () => {
-      const sources = map.getStyle()?.sources ?? {}
-      Object.entries(sources).forEach(([id, src]: [string, any]) => {
-        console.log(`[MapWidget] source "${id}" — type: ${src.type}, url: ${src.url ?? src.tiles ?? '(inline)'}`)
-      })
-    })
-
     map.on('load', () => {
       isLoaded.current = true
       syncLayers(map, storeLayers, prevLayerIds, showLegendRef.current, showPopupRef, getConfig)
     })
 
     mapRef.current = map
-     })
+
     return () => {
       isLoaded.current = false
       prevLayerIds.current = new Set()
-      mapRef.current?.remove()
+      map.remove()
       mapRef.current = null
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -337,17 +278,10 @@ function MapWidget({ widgetId, config }: MapWidgetProps) {
   useEffect(() => {
     const map = mapRef.current
     if (!map || !isLoaded.current) return
-    isLoaded.current = false
     map.setStyle(mapStyle)
     map.once('style.load', () => {
       prevLayerIds.current = new Set()
-      // isLoaded stays false until the timeout fires —
-      // prevents effect-9 from calling syncLayers in the same tick
-      setTimeout(() => {
-        if (!mapRef.current) return
-        isLoaded.current = true
-        syncLayers(map, useBuilderStore.getState().layers, prevLayerIds, showLegendRef.current, showPopupRef, getConfig)
-      }, 0)
+      syncLayers(map, storeLayers, prevLayerIds, showLegendRef.current, showPopupRef, getConfig)
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mapStyle])

@@ -4,6 +4,7 @@ import TemplatePickerPage from './pages/TemplatePickerPage'
 import DashboardBuilderPage from './pages/DashboardBuilderPage'
 import DashboardViewPage from './pages/DashboardViewPage'
 import ComingSoonPage from './pages/ComingSoonPage'
+import MapTestPage from './pages/MapTestPage'
 import LoginPage from './pages/LoginPage'
 import AppLoader from './components/AppLoader'
 import NotFoundPage from './components/NotFoundPage'
@@ -30,6 +31,7 @@ function App() {
           user ? <DashboardBuilderPage /> : <Navigate to="/login" replace />
         } />
         <Route path="/dashboard/:id" element={<DashboardViewPage />} />
+        <Route path="/map-test"    element={<MapTestPage />} />
         <Route path="/docs"        element={<ComingSoonPage />} />
         <Route path="/api"         element={<ComingSoonPage />} />
         <Route path="/community"   element={<ComingSoonPage />} />

@@ -14,13 +14,14 @@ function MapWidget2({ widgetId, config }: MapWidgetProps) {
     const mapContainer = useRef<HTMLDivElement>(null);
     const mapInstance = useRef<maptilersdk.Map | null>(null);
     maptilersdk.config.apiKey = 'ydeUYqeXv8WFtyvDNyef';
+    (maptilersdk.Map as any).workerUrl = `${process.env.PUBLIC_URL ?? ''}/maplibre-gl-csp-worker.js`;
 
     useEffect(() => {
         if (!mapContainer.current) return;
 
         mapInstance.current = new maptilersdk.Map({
             container: mapContainer.current,
-            style: 'https://api.maptiler.com/maps/streets/style.json?key=ydeUYqeXv8WFtyvDNyef',
+            style: 'https://api.maptiler.com/maps/streets-v4/style.json?key=ydeUYqeXv8WFtyvDNyef',
             center: [0, 0],
             zoom: 2,
         });

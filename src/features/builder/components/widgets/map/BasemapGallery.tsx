@@ -27,6 +27,14 @@ export const BASEMAP_STYLES: StyleEntry[] = [
   //   url: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
   //   preview: 'https://a.basemaps.cartocdn.com/dark_all/2/1/1.png',
   // },
+  // ── Vector (MapTiler — requires API key) ────────────────────────────
+  {
+    id: 'maptiler-hybrid',
+    label: 'Hybrid',
+    type: 'vector',
+    url: 'https://api.maptiler.com/maps/hybrid-v4/style.json?key=ydeUYqeXv8WFtyvDNyef',
+    preview: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/2/1/1',
+  },
   // ── Raster ──────────────────────────────────────────────────────────
   {
     id: 'satellite',

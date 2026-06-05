@@ -1,23 +1,25 @@
 import { useEffect, useRef } from 'react'
 import * as maptilersdk from '@maptiler/sdk';
 import "@maptiler/sdk/dist/maptiler-sdk.css";
+import maplibregl from 'maplibre-gl'
 import { MapConfig } from '../../types/builder.types'
 
+maptilersdk.config.apiKey = 'ydeUYqeXv8WFtyvDNyef';
+// @ts-ignore
+maplibregl.workerUrl = `${process.env.PUBLIC_URL ?? ''}/maplibre-gl-csp-worker.js`
 
 interface MapWidgetProps {
   widgetId: string
   config: Partial<MapConfig>
 }
 
-function MapWidget2({ widgetId, config }: MapWidgetProps) {
+function MapWidget2(_props: MapWidgetProps) {
 
     const mapContainer = useRef<HTMLDivElement>(null);
     const mapInstance = useRef<maptilersdk.Map | null>(null);
-    maptilersdk.config.apiKey = 'ydeUYqeXv8WFtyvDNyef';
-    (maptilersdk.Map as any).workerUrl = `${process.env.PUBLIC_URL ?? ''}/maplibre-gl-csp-worker.js`;
 
     useEffect(() => {
-        if (!mapContainer.current) return;
+        if (!mapContainer.current || mapInstance.current) return;
 
         mapInstance.current = new maptilersdk.Map({
             container: mapContainer.current,

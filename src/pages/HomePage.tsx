@@ -88,7 +88,7 @@ function HomePage() {
       display:         'flex',
       flexDirection:   'column',
       background:      '#f1f5f9',
-      backgroundImage: 'radial-gradient(circle, #cbd5e1 1px, transparent 1px)',
+      // backgroundImage: 'radial-gradient(circle, #e0e6ec 1px, transparent 1px)',
       backgroundSize:  '22px 22px',
       direction:       lang === 'ar' ? 'rtl' : 'ltr',
     }}>
@@ -136,33 +136,6 @@ function HomePage() {
               </h1>
             </div>
 
-            {/* CTA */}
-            <button
-              onClick={() => navigate('/templates')}
-              style={{
-                padding:      '9px 20px',
-                background:   '#0ea5e9',
-                border:       'none',
-                borderRadius: '40px',
-                fontSize:     '13px',
-                fontWeight:   '600',
-                color:        '#fff',
-                cursor:       'pointer',
-                boxShadow:    '0 2px 12px rgba(14,165,233,0.28)',
-                transition:   'background 0.15s, transform 0.12s',
-                display:      'flex',
-                alignItems:   'center',
-                gap:          '6px',
-                flexShrink:   0,
-              }}
-              onMouseEnter={e => { e.currentTarget.style.background = '#0284c7'; e.currentTarget.style.transform = 'translateY(-1px)' }}
-              onMouseLeave={e => { e.currentTarget.style.background = '#0ea5e9'; e.currentTarget.style.transform = 'translateY(0)' }}
-            >
-              <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
-                <path d="M6.5 1v11M1 6.5h11"/>
-              </svg>
-              {t.newBtn}
-            </button>
           </div>
 
           {/* ── Section label ── */}

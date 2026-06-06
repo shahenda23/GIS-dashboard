@@ -171,7 +171,7 @@ function DashboardCard({ dashboard, onShare, onPreview, onEdit, onDelete }: Dash
                 <div style={{
                   position:     'absolute',
                   top:          '100%',
-                  right:        0,
+                  ...(lang === 'ar' ? { left: 0 } : { right: 0 }),
                   marginTop:    '4px',
                   background:   '#fff',
                   border:       '1px solid var(--border)',

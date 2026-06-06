@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useTheme } from '../context/ThemeContext'
 import logoUrl from '../assets/logo.svg'
@@ -7,6 +7,8 @@ import logoUrl from '../assets/logo.svg'
 function LoginPage() {
   const { lang } = useTheme()
   const navigate  = useNavigate()
+  const location  = useLocation()
+  const from      = (location.state as any)?.from ?? '/'
   const [isSignUp, setIsSignUp] = useState(false)
   const [email,    setEmail]    = useState('')
   const [password, setPassword] = useState('')
@@ -49,7 +51,7 @@ function LoginPage() {
     } else {
       const { error } = await supabase.auth.signInWithPassword({ email, password })
       if (error) setError(error.message)
-      else navigate('/')
+      else navigate(from, { replace: true })
     }
     setLoading(false)
   }

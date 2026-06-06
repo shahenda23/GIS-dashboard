@@ -1,4 +1,5 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
+import { ReactElement } from 'react'
 import HomePage from './pages/HomePage'
 import TemplatePickerPage from './pages/TemplatePickerPage'
 import DashboardBuilderPage from './pages/DashboardBuilderPage'
@@ -8,6 +9,14 @@ import LoginPage from './pages/LoginPage'
 import AppLoader from './components/AppLoader'
 import NotFoundPage from './components/NotFoundPage'
 import { useAuth } from './context/AuthContext'
+
+// Redirects to /login and remembers the original URL
+function RequireAuth({ children }: { children: ReactElement }) {
+  const { user } = useAuth()
+  const location = useLocation()
+  if (!user) return <Navigate to="/login" state={{ from: location.pathname }} replace />
+  return children
+}
 
 function App() {
   const { user, loading } = useAuth()
@@ -21,13 +30,13 @@ function App() {
           user ? <Navigate to="/" replace /> : <LoginPage />
         } />
         <Route path="/" element={
-          user ? <HomePage /> : <Navigate to="/login" replace />
+          <RequireAuth><HomePage /></RequireAuth>
         } />
         <Route path="/templates" element={
-          user ? <TemplatePickerPage /> : <Navigate to="/login" replace />
+          <RequireAuth><TemplatePickerPage /></RequireAuth>
         } />
         <Route path="/builder/:id" element={
-          user ? <DashboardBuilderPage /> : <Navigate to="/login" replace />
+          <RequireAuth><DashboardBuilderPage /></RequireAuth>
         } />
         <Route path="/dashboard/:id" element={<DashboardViewPage />} />
         <Route path="/docs"        element={<ComingSoonPage />} />

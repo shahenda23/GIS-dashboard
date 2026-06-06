@@ -502,7 +502,7 @@ export default function DashboardViewPage() {
       loadDashboard(id).then(() => {
         const state = useBuilderStore.getState()
         if (state.dashboardId !== id) {
-          setStatus('notfound')
+          setStatus('denied')
         } else if (!state.isPublic && user?.id !== state.ownerId) {
           setStatus('denied')
         } else {
@@ -513,7 +513,7 @@ export default function DashboardViewPage() {
       setStatus('found')
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id])
+  }, [id, user?.id])
 
   const usedCols  = widgets.length ? Math.max(...widgets.map(w => w.x + w.w)) : GRID_COLS
   const usedRows  = widgets.length ? Math.max(...widgets.map(w => w.y + w.h)) : 4

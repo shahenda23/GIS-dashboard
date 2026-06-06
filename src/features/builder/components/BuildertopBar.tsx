@@ -67,6 +67,7 @@ function BuilderTopBar() {
           zIndex:         100,
           flexShrink:     0,
           gap:            "8px",
+          direction:      lang === "ar" ? "rtl" : "ltr",
         }}
       >
         {/* Left — floating glass pill */}

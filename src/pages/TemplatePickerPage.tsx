@@ -30,7 +30,7 @@ function TemplatePickerPage() {
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--page-bg)' }}>
-      <Navbar showNewButton={false} />
+      <Navbar activeTab="templates" showNewButton={false} />
 
       <main style={{ maxWidth: '1000px', margin: '0 auto', padding: '40px 32px' }}>
 

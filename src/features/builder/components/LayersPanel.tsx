@@ -324,7 +324,7 @@ function LayersPanel() {
                 <div style={{
                   position: 'absolute',
                   top: '100%',
-                  right: '8px',
+                  ...(lang === 'ar' ? { left: '8px' } : { right: '8px' }),
                   background: 'var(--surface)',
                   border: '1px solid var(--border)',
                   borderRadius: 'var(--radius-md)',
@@ -343,7 +343,7 @@ function LayersPanel() {
                         background: 'transparent',
                         border: 'none',
                         borderBottom: '1px solid var(--border)',
-                        textAlign: 'left',
+                        textAlign: lang === 'ar' ? 'right' : 'left',
                         fontSize: '13px',
                         color: 'var(--text-primary)',
                         cursor: 'pointer',

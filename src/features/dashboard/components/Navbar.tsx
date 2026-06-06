@@ -36,65 +36,68 @@ function Navbar({ activeTab = 'dashboards' }: NavbarProps) {
       alignItems:    'stretch',   // both pills same height
       direction:     isRTL ? 'rtl' : 'ltr',
       marginBottom:  '-2px',
-      padding:       isRTL ? '0 0 0 16px' : '0 16px 0 0',
+      padding:       '8px 16px',
       gap:           '10px',
       pointerEvents: 'none',
     }}>
 
-      {/* ══ LEFT — 1/3 ══════════════════════════════════════════════ */}
+      {/* ══ LEFT — pill brand ═══════════════════════════════════════ */}
       <div
         onClick={() => navigate('/')}
         style={{
-          flex:           1,            // 1 وحدة = تلت العرض
-          display:        'flex',
-          flexDirection:  'column',
-          justifyContent: 'center',
-          background:     '#ffffff',
-          borderBottom:   '2px solid #ffffff',
-          borderRight:    isRTL ? 'none'                 : '2px solid #ffffff',
-          borderLeft:     isRTL ? '2px solid #ffffff'   : 'none',
-          borderTop:      'none',
-          borderRadius:   isRTL ? '0 0 0 22px' : '0 0 22px 0',
-          padding:        '16px 36px',
-          cursor:         'pointer',
-          pointerEvents:  'auto',
-          transition:     'background 0.15s',
-        }}
-        onMouseEnter={e => (e.currentTarget.style.background = '#f8fafc')}
-        onMouseLeave={e => (e.currentTarget.style.background = '#ffffff')}
+          alignSelf:            'center',
+          display:              'flex',
+          alignItems:           'center',
+          gap:                  '18px',
+          background:           'rgba(255,255,255,0.88)',
+          backdropFilter:       'blur(14px)',
+          WebkitBackdropFilter: 'blur(14px)',
+          border:               '1.5px solid rgba(255,255,255,0.92)',
+          borderRadius:         '999px',
+          padding:              '8px 20px 8px 8px',
+          boxShadow:            '0 4px 18px rgba(0,0,0,0.07)',
+          cursor:               'pointer',
+          pointerEvents:        'auto',
+          transition:           'box-shadow 0.15s',
+          whiteSpace:           'nowrap',
+        } as React.CSSProperties}
+        onMouseEnter={e => (e.currentTarget.style.boxShadow = '0 6px 24px rgba(0,0,0,0.11)')}
+        onMouseLeave={e => (e.currentTarget.style.boxShadow = '0 4px 18px rgba(0,0,0,0.07)')}
       >
-        <span style={{
-          fontSize:      '10px',
-          color:         '#94a3b8',
-          letterSpacing: '0.5px',
-          marginBottom:  '5px',
-          textTransform: 'uppercase',
-          fontWeight:    '500',
+        {/* Logo */}
+        <div style={{
+          width:          '36px',
+          height:         '36px',
+          borderRadius:   '50%',
+          background:     '#f1f5f9',
+          display:        'flex',
+          alignItems:     'center',
+          justifyContent: 'center',
+          flexShrink:     0,
+          overflow:       'hidden',
         }}>
-          GIS Platform
-        </span>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <img src={logoUrl} alt="logo"
-            style={{ width: '32px', height: '32px', borderRadius: '9px', flexShrink: 0 }} />
-          <span style={{
-            fontSize:      '17px',
-            fontWeight:    '800',
-            color:         '#0f172a',
-            letterSpacing: '-0.5px',
-            whiteSpace:    'nowrap',
-          }}>
-            GIS Dashboard Builder
+          <img src={logoUrl} alt="logo" style={{ width: '28px', height: '28px', borderRadius: '6px' }} />
+        </div>
+
+        {/* Text */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+
+          <span style={{ fontSize: '14px', fontWeight: '700', letterSpacing: '-0.2px', lineHeight: 1.3 }}>
+            <span style={{ color: '#0f172a' }}>Dash</span>
+            <span style={{ color: '#0ea5e9' }}>Builder</span>
           </span>
         </div>
       </div>
 
       {/* ══ RIGHT — 2/3 ═════════════════════════════════════════════ */}
       <div style={{
-        flex:                 2,
+        flex:                 3,
         alignSelf:            'center',
+        position:             'relative',
         display:              'flex',
         alignItems:           'center',
-        justifyContent:       'space-between',
+        justifyContent:       'flex-end',
+        // direction:            'ltr',
         background:           'rgba(255,255,255,0.5)',
         backdropFilter:       'blur(14px)',
         WebkitBackdropFilter: 'blur(14px)',
@@ -103,12 +106,18 @@ function Navbar({ activeTab = 'dashboards' }: NavbarProps) {
         padding:              '8px 14px',
         boxShadow:            '0 4px 18px rgba(0,0,0,0.07)',
         pointerEvents:        'auto',
-        gap:                  '4px',
         margin:               '8px 0',
       } as React.CSSProperties}>
 
-        {/* Nav tabs */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+        {/* Nav tabs — always centered */}
+        <div style={{
+          position:  'absolute',
+          left:      '50%',
+          transform: 'translateX(-50%)',
+          display:   'flex',
+          alignItems: 'center',
+          gap:        '2px',
+        }}>
           {tabs.map(t => (
             <button key={t.label} onClick={() => navigate(t.to)}
               style={{
@@ -131,8 +140,8 @@ function Navbar({ activeTab = 'dashboards' }: NavbarProps) {
           ))}
         </div>
 
-        {/* Right actions */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+        {/* Actions — always on the right */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', zIndex: 1 }}>
           <div style={{ width: '1px', height: '18px', background: '#e2e8f0', margin: '0 4px', flexShrink: 0 }} />
 
           <button onClick={toggleLang} title={lang === 'en' ? 'عربي' : 'English'}

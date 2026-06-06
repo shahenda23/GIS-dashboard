@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useBuilderStore } from '../features/builder/store/builderStore'
 import { useAuth } from '../context/AuthContext'
+import { useTheme } from '../context/ThemeContext'
 import AccessDeniedPage from '../components/AccessDeniedPage'
 import BuilderTopBar from '../features/builder/components/BuildertopBar'
 import LayersPanel from '../features/builder/components/LayersPanel'
@@ -17,6 +18,7 @@ const TEMPLATE_IDS = new Set(['blank', 'urban', 'field', 'environmental', 'infra
 function DashboardBuilderPage() {
   const { id } = useParams()
   const { user }        = useAuth()
+  const { lang }        = useTheme()
   const loadDashboard   = useBuilderStore(s => s.loadDashboard)
   const storeIsLoading  = useBuilderStore(s => s.isLoading)
   const ownerId         = useBuilderStore(s => s.ownerId)
@@ -95,11 +97,12 @@ function DashboardBuilderPage() {
 
       {/* Main content row */}
       <div style={{
-        display:  'flex',
-        flex:     1,
-        overflow: 'hidden',
-        padding:  '8px 12px 0 12px',
-        gap:      '10px',
+        display:   'flex',
+        flex:      1,
+        overflow:  'hidden',
+        padding:   '8px 12px 0 12px',
+        gap:       '10px',
+        direction: lang === 'ar' ? 'rtl' : 'ltr',
       }}>
         {!isLoading && <LayersPanel />}
         {isLoading ? <AppLoader /> : <WidgetCanvas />}

@@ -1,5 +1,62 @@
-import maplibregl from 'maplibre-gl'
-import type { GeoLayer, MapConfig } from '../../../../../types/builder.types'
+// import maplibregl from 'maplibre-gl'
+// import type { GeoLayer, MapConfig } from '../../../../../types/builder.types'
+// import type { LayerHandler } from '../LayerHandler'
+// import type { MutableRefObject } from 'react'
+
+// export class RasterHandler implements LayerHandler {
+//   canHandle(type: GeoLayer['type']) {
+//     return type === 'raster'
+//   }
+
+//   add(
+//     map: maplibregl.Map,
+//     layer: GeoLayer,
+//     _showPopupRef: MutableRefObject<boolean>,
+//     _getConfig: () => Partial<MapConfig>
+//   ) {
+//     const url = (layer as any).url
+//     if (!url) {
+//       console.warn(`RasterHandler: layer "${layer.id}" has no url`)
+//       return
+//     }
+
+//     this.remove(map, layer.id)
+
+//     try {
+//       map.addSource(layer.id, {
+//         type: 'raster',
+//         tiles: [url],
+//         tileSize: 256,
+//       })
+//       map.addLayer({
+//         id: `${layer.id}-layer`,
+//         type: 'raster',
+//         source: layer.id,
+//         paint: { 'raster-opacity': 0.85 },
+//       })
+//     } catch (err) {
+//       console.warn(`RasterHandler: failed for ${layer.id}:`, err)
+//     }
+//   }
+
+//   remove(map: maplibregl.Map, layerId: string) {
+//     try { if (map.getLayer(`${layerId}-layer`)) map.removeLayer(`${layerId}-layer`) } catch {}
+//     try { if (map.getSource(layerId))           map.removeSource(layerId)           } catch {}
+//   }
+
+//   setVisibility(map: maplibregl.Map, layerId: string, visible: boolean) {
+//     try {
+//       if (map.getLayer(`${layerId}-layer`))
+//         map.setLayoutProperty(`${layerId}-layer`, 'visibility', visible ? 'visible' : 'none')
+//     } catch {}
+//   }
+
+//   updateStyle(map: maplibregl.Map, layer: GeoLayer) {
+//     // raster tiles don't support color overrides
+//   }
+// }
+import mapboxgl from 'mapbox-gl'
+import type { GeoLayer, MapConfig } from '../../../../types/builder.types'
 import type { LayerHandler } from '../LayerHandler'
 import type { MutableRefObject } from 'react'
 
@@ -9,7 +66,7 @@ export class RasterHandler implements LayerHandler {
   }
 
   add(
-    map: maplibregl.Map,
+    map: mapboxgl.Map,
     layer: GeoLayer,
     _showPopupRef: MutableRefObject<boolean>,
     _getConfig: () => Partial<MapConfig>
@@ -39,19 +96,19 @@ export class RasterHandler implements LayerHandler {
     }
   }
 
-  remove(map: maplibregl.Map, layerId: string) {
+  remove(map: mapboxgl.Map, layerId: string) {
     try { if (map.getLayer(`${layerId}-layer`)) map.removeLayer(`${layerId}-layer`) } catch {}
     try { if (map.getSource(layerId))           map.removeSource(layerId)           } catch {}
   }
 
-  setVisibility(map: maplibregl.Map, layerId: string, visible: boolean) {
+  setVisibility(map: mapboxgl.Map, layerId: string, visible: boolean) {
     try {
       if (map.getLayer(`${layerId}-layer`))
         map.setLayoutProperty(`${layerId}-layer`, 'visibility', visible ? 'visible' : 'none')
     } catch {}
   }
 
-  updateStyle(map: maplibregl.Map, layer: GeoLayer) {
+  updateStyle(_map: mapboxgl.Map, _layer: GeoLayer) {
     // raster tiles don't support color overrides
   }
 }

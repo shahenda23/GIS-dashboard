@@ -1090,13 +1090,14 @@
 // export default MapWidget
 
 import { useEffect, useRef } from 'react'
-import mapboxgl from 'mapbox-gl'
-import 'mapbox-gl/dist/mapbox-gl.css'
+// import mapboxgl from 'mapbox-gl'
+// import 'mapbox-gl/dist/mapbox-gl.css'
 import { MapConfig } from '../../types/builder.types'
 import { useBuilderStore } from '../../store/builderStore'
 import { getLayerHandler } from './map/layerRegistry'
 import { getGeometryType } from './map/handlers/GeoJsonHandler'
 
+const mapboxgl = (window as any).mapboxgl
 // ── Token ─────────────────────────────────────────────────────────────────────
 // Set your Mapbox public token here. Also exported so LazyMapWidget can use it
 // for Static Images API requests (which are free and don't count as map loads).

@@ -1,9 +1,9 @@
-import MapWidget2 from '../features/builder/components/widgets/MapWidget2'
+import MapWidget from '../features/builder/components/widgets/MapWidget'
 
 function MapTestPage() {
   return (
     <div style={{ width: '100vw', height: '100vh' }}>
-      <MapWidget2 widgetId="test" config={{}} />
+      <MapWidget />
     </div>
   )
 }

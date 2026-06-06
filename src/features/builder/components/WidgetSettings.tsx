@@ -260,6 +260,9 @@ function WidgetSettings() {
             {/* Divider */}
             <div style={{ height: '1px', background: 'var(--border)' }} />
 
+            {/* Divider */}
+            <div style={{ height: '1px', background: 'var(--border)' }} />
+
             {/* Delete */}
             <button
               onClick={() => {

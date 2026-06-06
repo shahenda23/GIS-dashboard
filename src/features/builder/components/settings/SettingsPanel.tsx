@@ -124,6 +124,9 @@ function SettingsPanel() {
             {/* Divider */}
             <div style={{ height: '1px', background: 'var(--border)' }} />
 
+            {/* Divider */}
+            <div style={{ height: '1px', background: 'var(--border)' }} />
+
             {/* Delete */}
             <button
               onClick={() => { removeWidget(selectedWidget.id); selectWidget(null) }}

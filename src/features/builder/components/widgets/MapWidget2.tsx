@@ -187,7 +187,7 @@
 
 //   // keep refs in sync every render
 //   showLegendRef.current = config.showLegend !== false
-//   showPopupRef.current  = config.showPopup  !== false
+//   showPopupRef.current  = config.showPoFpup  !== false
 //   configRef.current     = config
 
 //   const getConfig = () => configRef.current
@@ -1183,7 +1183,7 @@ function createLegend(
     cursor: pointer; display: flex; align-items: center; justify-content: center;
     pointer-events: auto; margin-bottom: 4px;
   `
-  toggle.innerHTML = '<span style="font-size:16px;line-height:1;">✕</span>'
+  toggle.innerHTML = '<span style="font-size:16px;line-height:1;">☰</span>'
 
   const legend = document.createElement('div')
   legend.style.cssText = `
@@ -1194,7 +1194,7 @@ function createLegend(
     border: 1px solid #e5e7eb; border-radius: 14px;
     padding: 12px 14px;
     box-shadow: 0 3px 12px rgba(0,0,0,0.12);
-    color: #111827; display: block; pointer-events: auto;
+    color: #111827; display: none; pointer-events: auto;
   `
 
   const title = document.createElement('p')

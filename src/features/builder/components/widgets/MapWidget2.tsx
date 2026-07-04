@@ -1,14 +1,34 @@
-// import { useEffect, useRef, useState } from 'react'
-// import maplibregl from 'maplibre-gl'
-// import 'maplibre-gl/dist/maplibre-gl.css'
+// import { useEffect, useRef } from 'react'
+// // import mapboxgl from 'mapbox-gl'
+// // import 'mapbox-gl/dist/mapbox-gl.css'
 // import { MapConfig } from '../../types/builder.types'
 // import { useBuilderStore } from '../../store/builderStore'
 // import { getLayerHandler } from './map/layerRegistry'
 // import { getGeometryType } from './map/handlers/GeoJsonHandler'
-// import BasemapGallery, { BASEMAP_STYLES, StyleEntry } from './map/BasemapGallery'
 
-// // @ts-ignore
-// maplibregl.workerUrl = `${process.env.PUBLIC_URL ?? ''}/maplibre-gl-csp-worker.js`
+// const mapboxgl = (window as any).mapboxgl
+// // ── Token ─────────────────────────────────────────────────────────────────────
+// // Set your Mapbox public token here. Also exported so LazyMapWidget can use it
+// // for Static Images API requests (which are free and don't count as map loads).
+// export const MAPBOX_TOKEN = process.env.REACT_APP_MAPBOX_TOKEN ?? ''
+// mapboxgl.accessToken = MAPBOX_TOKEN
+
+// // ── Map styles ────────────────────────────────────────────────────────────────
+// // Mapbox style IDs — these map to the same visual styles as before.
+// export const MAP_STYLES = [
+//   { value: 'mapbox://styles/mapbox/streets-v12',       label: 'Streets (Default)' },
+//   { value: 'mapbox://styles/mapbox/light-v11',         label: 'Light' },
+//   { value: 'mapbox://styles/mapbox/dark-v11',          label: 'Dark Matter' },
+//   { value: 'mapbox://styles/mapbox/outdoors-v12',      label: 'Outdoors' },
+//   { value: 'mapbox://styles/mapbox/satellite-v9',      label: 'Satellite' },
+//   { value: 'mapbox://styles/mapbox/satellite-streets-v12', label: 'Satellite Streets' },
+// ]
+
+// // Maps a Mapbox style URL to a short style ID used by the Static Images API
+// export function styleUrlToStaticId(styleUrl: string): string {
+//   const match = styleUrl.match(/mapbox:\/\/styles\/(.+)/)
+//   return match ? match[1] : 'mapbox/streets-v12'
+// }
 
 // interface MapWidgetProps {
 //   widgetId: string
@@ -18,68 +38,91 @@
 // // ── BBox from GeoJSON ─────────────────────────────────────────────────────────
 // function getBBox(data: any): [[number, number], [number, number]] | null {
 //   const coords: [number, number][] = []
+
 //   function collect(geom: any) {
 //     if (!geom) return
 //     switch (geom.type) {
-//       case 'Point':           coords.push(geom.coordinates); break
+//       case 'Point':            coords.push(geom.coordinates); break
 //       case 'MultiPoint':
-//       case 'LineString':      coords.push(...geom.coordinates); break
+//       case 'LineString':       coords.push(...geom.coordinates); break
 //       case 'MultiLineString':
-//       case 'Polygon':         geom.coordinates.forEach((r: any) => coords.push(...r)); break
-//       case 'MultiPolygon':    geom.coordinates.forEach((p: any) => p.forEach((r: any) => coords.push(...r))); break
+//       case 'Polygon':          geom.coordinates.forEach((r: any) => coords.push(...r)); break
+//       case 'MultiPolygon':     geom.coordinates.forEach((p: any) => p.forEach((r: any) => coords.push(...r))); break
 //     }
 //   }
-//   ;(data?.features ?? []).forEach((f: any) => collect(f.geometry))
+
+//   ;(data?.features ?? []).forEach((f: any) => collect(f?.geometry))
 //   if (!coords.length) return null
+
 //   const lngs = coords.map(c => c[0])
-//   const lats  = coords.map(c => c[1])
-//   return [[Math.min(...lngs), Math.min(...lats)], [Math.max(...lngs), Math.max(...lats)]]
+//   const lats = coords.map(c => c[1])
+//   return [
+//     [Math.min(...lngs), Math.min(...lats)],
+//     [Math.max(...lngs), Math.max(...lats)],
+//   ]
 // }
 
 // // ── Legend ────────────────────────────────────────────────────────────────────
-// function createLegend(map: maplibregl.Map, storeLayers: any[], showLegend = true) {
+// function createLegend(
+//   map: mapboxgl.Map,
+//   storeLayers: any[],
+//   showLegend: boolean
+// ) {
+//   // Remove any existing legend root
+//   const existing = map.getContainer().querySelector('.gis-legend-root')
+//   if (existing) existing.remove()
+
+//   const visibleLayers = storeLayers.filter(l => l.visible && (l.data || (l as any).url))
+//   if (!showLegend || visibleLayers.length === 0) return
+
 //   const container = map.getContainer()
-//   const existingRoot = container.querySelector('#map-legend-root')
-//   if (existingRoot) existingRoot.remove()
-//   if (!showLegend) return
-
-//   const visibleLayers = storeLayers.filter(l => l.visible && l.data)
-//   if (!visibleLayers.length) return
-
 //   const root = document.createElement('div')
-//   root.id = 'map-legend-root'
-//   root.style.cssText = `position:absolute;top:10px;left:10px;display:flex;flex-direction:column;align-items:flex-start;gap:6px;z-index:10;pointer-events:auto;`
+//   root.className = 'gis-legend-root'
+//   root.style.cssText = `
+//     position: absolute; top: 10px; left: 10px;
+//     z-index: 2; pointer-events: none;
+//   `
 
 //   const toggle = document.createElement('button')
-//   toggle.type = 'button'
-//   toggle.title = 'Show legend'
-//   toggle.style.cssText = `width:34px;height:34px;border:1px solid #d1d5db;border-radius:12px;background:rgba(255,255,255,0.95);color:#111827;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,0.08);padding:0;`
+//   toggle.title = 'Hide legend'
+//   toggle.style.cssText = `
+//     width: 30px; height: 30px; border-radius: 8px;
+//     background: rgba(255,255,255,0.98); border: 1px solid #e5e7eb;
+//     box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+//     cursor: pointer; display: flex; align-items: center; justify-content: center;
+//     pointer-events: auto; margin-bottom: 4px;
+//   `
 //   toggle.innerHTML = '<span style="font-size:16px;line-height:1;">☰</span>'
 
 //   const legend = document.createElement('div')
-//   legend.id = 'map-legend'
-//   legend.style.cssText = `width:240px;max-height:${Math.floor(container.offsetHeight * 0.5)}px;overflow-y:auto;background:rgba(255,255,255,0.98);border:1px solid #e5e7eb;border-radius:14px;padding:12px 14px;box-shadow:0 3px 12px rgba(0,0,0,0.12);color:#111827;display:none;pointer-events:auto;`
+//   legend.style.cssText = `
+//     min-width: 140px; max-width: 240px;
+//     max-height: ${Math.floor(container.offsetHeight * 0.5)}px;
+//     overflow-y: auto;
+//     background: rgba(255,255,255,0.98);
+//     border: 1px solid #e5e7eb; border-radius: 14px;
+//     padding: 12px 14px;
+//     box-shadow: 0 3px 12px rgba(0,0,0,0.12);
+//     color: #111827; display: none; pointer-events: auto;
+//   `
 
 //   const title = document.createElement('p')
 //   title.textContent = 'Layers'
-//   title.style.cssText = `font-size:10px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.8px;margin:0 0 8px 0;padding-bottom:6px;border-bottom:1px solid #e5e7eb;`
+//   title.style.cssText = `
+//     font-size: 10px; font-weight: 700; color: #6b7280;
+//     text-transform: uppercase; letter-spacing: 0.8px;
+//     margin: 0 0 8px 0; padding-bottom: 6px; border-bottom: 1px solid #e5e7eb;
+//   `
 //   legend.appendChild(title)
 
 //   visibleLayers.forEach(layer => {
 //     const geoType = getGeometryType(layer.data)
 //     const item = document.createElement('div')
-//     item.style.cssText = `display:flex;align-items:center;gap:8px;margin-bottom:6px;padding:4px 6px;border-radius:8px;cursor:default;transition:background 0.15s;`
-
-//     const zoomBtn = document.createElement('button')
-//     zoomBtn.title = 'Zoom to layer'
-//     zoomBtn.style.cssText = `flex-shrink:0;opacity:0;transition:opacity 0.15s;background:transparent;border:none;cursor:pointer;padding:2px;display:flex;align-items:center;color:#6b7280;`
-//     zoomBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="5" cy="5" r="3.5"/><line x1="7.5" y1="7.5" x2="11" y2="11"/><line x1="5" y1="3.5" x2="5" y2="6.5"/><line x1="3.5" y1="5" x2="6.5" y2="5"/></svg>`
-//     zoomBtn.addEventListener('click', e => {
-//       e.stopPropagation()
-//       const bbox = getBBox(layer.data)
-//       if (bbox) map.fitBounds(bbox, { padding: 60, duration: 800, maxZoom: 18 })
-//     })
-
+//     item.style.cssText = `
+//       display: flex; align-items: center; gap: 8px; margin-bottom: 6px;
+//       padding: 4px 6px; border-radius: 8px; cursor: default;
+//       transition: background 0.15s;
+//     `
 //     item.addEventListener('mouseenter', () => { item.style.background = '#f3f4f6'; zoomBtn.style.opacity = '1' })
 //     item.addEventListener('mouseleave', () => { item.style.background = 'transparent'; zoomBtn.style.opacity = '0' })
 
@@ -96,6 +139,25 @@
 //     label.textContent = layer.name
 //     label.style.cssText = 'color:#374151;font-size:11px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0;'
 
+//     const zoomBtn = document.createElement('button')
+//     zoomBtn.title = 'Zoom to layer'
+//     zoomBtn.style.cssText = `
+//       flex-shrink: 0; opacity: 0; transition: opacity 0.15s;
+//       background: transparent; border: none; cursor: pointer;
+//       padding: 2px; display: flex; align-items: center; color: #6b7280;
+//     `
+//     zoomBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5">
+//       <circle cx="5" cy="5" r="3.5"/>
+//       <line x1="7.5" y1="7.5" x2="11" y2="11"/>
+//       <line x1="5" y1="3.5" x2="5" y2="6.5"/>
+//       <line x1="3.5" y1="5" x2="6.5" y2="5"/>
+//     </svg>`
+//     zoomBtn.addEventListener('click', (e) => {
+//       e.stopPropagation()
+//       const bbox = getBBox(layer.data)
+//       if (bbox) map.fitBounds(bbox, { padding: 60, duration: 800, maxZoom: 18 })
+//     })
+
 //     item.appendChild(icon)
 //     item.appendChild(label)
 //     item.appendChild(zoomBtn)
@@ -106,7 +168,9 @@
 //     const isOpen = legend.style.display === 'block'
 //     legend.style.display = isOpen ? 'none' : 'block'
 //     toggle.title = isOpen ? 'Show legend' : 'Hide legend'
-//     toggle.innerHTML = isOpen ? '<span style="font-size:16px;line-height:1;">☰</span>' : '<span style="font-size:16px;line-height:1;">✕</span>'
+//     toggle.innerHTML = isOpen
+//       ? '<span style="font-size:16px;line-height:1;">☰</span>'
+//       : '<span style="font-size:16px;line-height:1;">✕</span>'
 //   })
 
 //   root.appendChild(toggle)
@@ -116,7 +180,7 @@
 
 // // ── Sync all layers via registry ──────────────────────────────────────────────
 // function syncLayers(
-//   map: maplibregl.Map,
+//   map: mapboxgl.Map,
 //   storeLayers: any[],
 //   prevLayerIds: React.MutableRefObject<Set<string>>,
 //   showLegend: boolean,
@@ -124,6 +188,8 @@
 //   getConfig: () => Partial<MapConfig>
 // ) {
 //   const currentIds = new Set(storeLayers.map(l => l.id))
+
+//   // Remove deleted layers
 //   prevLayerIds.current.forEach(id => {
 //     if (!currentIds.has(id)) {
 //       const deleted = storeLayers.find(l => l.id === id)
@@ -131,10 +197,13 @@
 //       handler.remove(map, id)
 //     }
 //   })
+
 //   storeLayers.forEach(layer => {
 //     if (!layer.data && !(layer as any).url) return
+
 //     const handler = getLayerHandler(layer.type)
 //     const exists  = !!map.getSource(layer.id)
+
 //     if (!exists) {
 //       handler.add(map, layer, showPopupRef, getConfig)
 //       if (!layer.visible) handler.setVisibility(map, layer.id, false)
@@ -143,83 +212,80 @@
 //       if (layer.visible) handler.updateStyle(map, layer)
 //     }
 //   })
+
 //   prevLayerIds.current = currentIds
 //   createLegend(map, storeLayers, showLegend)
 // }
 
-// // ── Style helpers ─────────────────────────────────────────────────────────────
-// function buildRasterStyle(entry: Extract<StyleEntry, { type: 'raster' }>): maplibregl.StyleSpecification {
-//   return {
-//     version: 8,
-//     sources: { base: { type: 'raster', tiles: entry.tiles, tileSize: 256, attribution: entry.attribution } },
-//     layers:  [{ id: 'base-layer', type: 'raster', source: 'base' }],
-//   }
-// }
-
-// function getStyleSpec(entry: StyleEntry): maplibregl.StyleSpecification | string {
-//   return entry.type === 'vector'
-//     ? entry.url
-//     : buildRasterStyle(entry as Extract<StyleEntry, { type: 'raster' }>)
-// }
-
-// function resolveStyleId(mapStyle: string | undefined): string {
-//   if (!mapStyle) return 'satellite'
-//   if (BASEMAP_STYLES.some(s => s.id === mapStyle)) return mapStyle
-//   return 'satellite' // old URL-based configs fall back to satellite
+// // ── Style guard ───────────────────────────────────────────────────────────────
+// // Rejects any saved style that isn't a valid mapbox:// URL (e.g. old maplibre
+// // URLs, bare words like "satellite" from stale Supabase/localStorage data).
+// function sanitizeStyle(raw: string | undefined): string {
+//   if (raw && raw.startsWith('mapbox://styles/')) return raw
+//   return MAP_STYLES[0].value  // fall back to Streets
 // }
 
 // // ── Component ─────────────────────────────────────────────────────────────────
-// function MapWidget2({ widgetId: _widgetId, config }: MapWidgetProps) {
-//   const mapContainer  = useRef<HTMLDivElement>(null)
-//   const mapRef        = useRef<maplibregl.Map | null>(null)
-//   const navRef        = useRef<maplibregl.NavigationControl | null>(null)
-//   const scaleRef      = useRef<maplibregl.ScaleControl | null>(null)
-//   const isLoaded      = useRef(false)
-//   const prevLayerIds  = useRef<Set<string>>(new Set())
+// function MapWidget({ widgetId, config }: MapWidgetProps) {
+//   const mapContainer = useRef<HTMLDivElement>(null)
+//   const mapRef       = useRef<mapboxgl.Map | null>(null)
+//   const navRef       = useRef<mapboxgl.NavigationControl | null>(null)
+//   const scaleRef     = useRef<mapboxgl.ScaleControl | null>(null)
+//   const isLoaded     = useRef(false)
+//   const prevLayerIds = useRef<Set<string>>(new Set())
 //   const showLegendRef = useRef(config.showLegend !== false)
 //   const showPopupRef  = useRef(config.showPopup  !== false)
 //   const configRef     = useRef(config)
 
-//   const storeLayers   = useBuilderStore(s => s.layers)
-//   const zoomToLayerId = useBuilderStore(s => s.zoomToLayerId)
+//   const { layers: storeLayers, zoomToLayerId } = useBuilderStore()
 
-//   const [activeId, setActiveId] = useState(() => resolveStyleId(config.mapStyle))
-
-//   // keep refs in sync every render
+//   // Keep refs in sync every render
 //   showLegendRef.current = config.showLegend !== false
-//   showPopupRef.current  = config.showPoFpup  !== false
+//   showPopupRef.current  = config.showPopup  !== false
 //   configRef.current     = config
 
 //   const getConfig = () => configRef.current
-//   const zoom   = config.zoom ?? 10
-//   const center = (config as any).center ?? [31.2357, 30.0444]
 
-//   // 1. Initialize map
+//   const mapStyle = sanitizeStyle(config.mapStyle)
+//   const zoom     = config.zoom     ?? 10
+//   const center   = (config as any).center ?? [31.2357, 30.0444]
+
+//   // ── 1. Initialize map ─────────────────────────────────
 //   useEffect(() => {
 //     if (mapRef.current || !mapContainer.current) return
-//     const entry = BASEMAP_STYLES.find(s => s.id === activeId) ?? BASEMAP_STYLES[0]
-//     const map = new maplibregl.Map({
+
+//     const map = new mapboxgl.Map({
 //       container: mapContainer.current,
-//       style: getStyleSpec(entry),
+//       style: mapStyle,
 //       center,
 //       zoom,
 //       attributionControl: false,
 //     })
-//     map.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-right')
+
+//     map.addControl(
+//       new mapboxgl.AttributionControl({ compact: true }),
+//       'bottom-right'
+//     )
+
 //     map.on('load', () => {
 //       isLoaded.current = true
 //       syncLayers(map, storeLayers, prevLayerIds, showLegendRef.current, showPopupRef, getConfig)
 //     })
+
 //     mapRef.current = map
+
 //     return () => {
 //       isLoaded.current = false
 //       prevLayerIds.current = new Set()
-//       map.remove()
+//       const m = map
 //       mapRef.current = null
+//       // Defer WebGL teardown so it doesn't block the navigation frame
+//       requestAnimationFrame(() => m.remove())
 //     }
-//   }, []) // eslint-disable-line
+//     // eslint-disable-next-line react-hooks/exhaustive-deps
+//   }, [])
 
-//   // 2. Resize observer
+//   // ── 2. Resize observer ────────────────────────────────
 //   useEffect(() => {
 //     if (!mapContainer.current) return
 //     const ro = new ResizeObserver(() => { mapRef.current?.resize() })
@@ -227,118 +293,113 @@
 //     return () => ro.disconnect()
 //   }, [])
 
-//   // 3. Config style change (from settings panel)
+//   // ── 3. Style change ───────────────────────────────────
 //   useEffect(() => {
-//     const newId = resolveStyleId(config.mapStyle)
-//     if (!mapRef.current || !isLoaded.current || newId === activeId) return
-//     const entry = BASEMAP_STYLES.find(s => s.id === newId) ?? BASEMAP_STYLES[0]
-//     mapRef.current.setStyle(getStyleSpec(entry))
-//     mapRef.current.once('style.load', () => {
+//     const map = mapRef.current
+//     if (!map || !isLoaded.current) return
+//     map.setStyle(mapStyle)
+//     map.once('style.load', () => {
 //       prevLayerIds.current = new Set()
-//       syncLayers(mapRef.current!, storeLayers, prevLayerIds, showLegendRef.current, showPopupRef, getConfig)
+//       syncLayers(map, storeLayers, prevLayerIds, showLegendRef.current, showPopupRef, getConfig)
 //     })
-//     setActiveId(newId)
-//   }, [config.mapStyle]) // eslint-disable-line
+//     // eslint-disable-next-line react-hooks/exhaustive-deps
+//   }, [mapStyle])
 
-//   // 4. Zoom level
+//   // ── 4. Zoom level ─────────────────────────────────────
 //   useEffect(() => {
 //     if (!mapRef.current || !isLoaded.current) return
 //     mapRef.current.setZoom(zoom)
 //   }, [zoom])
 
-//   // 5. Navigation control
+//   // ── 5. Navigation control ─────────────────────────────
 //   useEffect(() => {
 //     const map = mapRef.current
 //     if (!map) return
 //     if (navRef.current) { try { map.removeControl(navRef.current) } catch {} navRef.current = null }
 //     if (config.showNavigation !== false) {
-//       const nav = new maplibregl.NavigationControl()
+//       const nav = new mapboxgl.NavigationControl()
 //       map.addControl(nav, 'top-right')
 //       navRef.current = nav
 //     }
 //   }, [config.showNavigation])
 
-//   // 6. Scale control
+//   // ── 6. Scale control ──────────────────────────────────
 //   useEffect(() => {
 //     const map = mapRef.current
 //     if (!map) return
 //     if (scaleRef.current) { try { map.removeControl(scaleRef.current) } catch {} scaleRef.current = null }
 //     if (config.showScale) {
-//       const scale = new maplibregl.ScaleControl({ unit: 'metric' })
+//       const scale = new mapboxgl.ScaleControl({ unit: 'metric' })
 //       map.addControl(scale, 'bottom-left')
 //       scaleRef.current = scale
 //     }
 //   }, [config.showScale])
 
-//   // 7. Zoom interaction
+//   // ── 7. Zoom interaction ───────────────────────────────
 //   useEffect(() => {
 //     const map = mapRef.current
 //     if (!map) return
 //     if (config.allowZoom === false) {
-//       map.scrollZoom.disable(); map.doubleClickZoom.disable(); map.boxZoom.disable()
+//       map.scrollZoom.disable()
+//       map.doubleClickZoom.disable()
+//       map.boxZoom.disable()
 //     } else {
-//       map.scrollZoom.enable(); map.doubleClickZoom.enable(); map.boxZoom.enable()
+//       map.scrollZoom.enable()
+//       map.doubleClickZoom.enable()
+//       map.boxZoom.enable()
 //     }
 //   }, [config.allowZoom])
 
-//   // 8. Pan interaction
+//   // ── 8. Pan interaction ────────────────────────────────
 //   useEffect(() => {
 //     const map = mapRef.current
 //     if (!map) return
 //     if (config.allowPan === false) {
-//       map.dragPan.disable(); map.keyboard.disable()
+//       map.dragPan.disable()
+//       map.keyboard.disable()
 //     } else {
-//       map.dragPan.enable(); map.keyboard.enable()
+//       map.dragPan.enable()
+//       map.keyboard.enable()
 //     }
 //   }, [config.allowPan])
 
-//   // 9. Sync GIS layers
+//   // ── 9. Sync GIS layers ────────────────────────────────
 //   useEffect(() => {
 //     const map = mapRef.current
 //     if (!map || !isLoaded.current) return
 //     syncLayers(map, storeLayers, prevLayerIds, showLegendRef.current, showPopupRef, getConfig)
-//   }, [storeLayers]) // eslint-disable-line
+//   }, [storeLayers])  // eslint-disable-line react-hooks/exhaustive-deps
 
-//   // 10. Zoom to layer
+//   // ── 10. Zoom to layer ─────────────────────────────────
 //   useEffect(() => {
 //     const map = mapRef.current
 //     if (!map || !isLoaded.current || !zoomToLayerId) return
+
 //     const layer = storeLayers.find(l => l.id === zoomToLayerId)
 //     if (layer?.data) {
 //       const bbox = getBBox(layer.data)
 //       if (bbox) map.fitBounds(bbox, { padding: 60, duration: 800, maxZoom: 18 })
 //     }
-//     useBuilderStore.setState({ zoomToLayerId: null })
-//   }, [zoomToLayerId]) // eslint-disable-line
 
-//   // 11. Legend visibility
+//     useBuilderStore.setState({ zoomToLayerId: null })
+//   }, [zoomToLayerId])  // eslint-disable-line react-hooks/exhaustive-deps
+
+//   // ── 11. Legend visibility ─────────────────────────────
 //   useEffect(() => {
 //     const map = mapRef.current
 //     if (!map || !isLoaded.current) return
 //     syncLayers(map, storeLayers, prevLayerIds, config.showLegend !== false, showPopupRef, getConfig)
-//   }, [config.showLegend]) // eslint-disable-line
-
-//   // Gallery style switch
-//   function switchStyle(entry: StyleEntry) {
-//     const map = mapRef.current
-//     if (!map || entry.id === activeId) return
-//     map.setStyle(getStyleSpec(entry))
-//     map.once('style.load', () => {
-//       prevLayerIds.current = new Set()
-//       syncLayers(map, storeLayers, prevLayerIds, showLegendRef.current, showPopupRef, getConfig)
-//     })
-//     setActiveId(entry.id)
-//   }
+//   }, [config.showLegend])  // eslint-disable-line react-hooks/exhaustive-deps
 
 //   return (
-//     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-//       <div ref={mapContainer} style={{ width: '100%', height: '100%' }} />
-//       {config.showBasemapGallery !== false && <BasemapGallery activeId={activeId} onSelect={switchStyle} />}
-//     </div>
+//     <div ref={mapContainer} style={{ width: '100%', height: '100%' }} />
 //   )
 // }
 
-// export default MapWidget2
+// export default MapWidget
+
+
+
 // import { useEffect, useRef } from 'react'
 // import maplibregl from 'maplibre-gl'
 // import 'maplibre-gl/dist/maplibre-gl.css'
@@ -1089,37 +1150,54 @@
 
 // export default MapWidget
 
-import { useEffect, useRef } from 'react'
+// ── MAPBOX VERSION (commented out — uncomment to switch back) ─────────────────
+// import { useEffect, useRef } from 'react'
 // import mapboxgl from 'mapbox-gl'
 // import 'mapbox-gl/dist/mapbox-gl.css'
+// import { MapConfig } from '../../types/builder.types'
+// import { useBuilderStore } from '../../store/builderStore'
+// import { getLayerHandler } from './map/layerRegistry'
+// import { getGeometryType } from './map/handlers/GeoJsonHandler'
+// export const MAPBOX_TOKEN = process.env.REACT_APP_MAPBOX_TOKEN ?? ''
+// mapboxgl.accessToken = MAPBOX_TOKEN
+// export const MAP_STYLES = [
+//   { value: 'mapbox://styles/mapbox/streets-v12',           label: 'Streets (Default)' },
+//   { value: 'mapbox://styles/mapbox/light-v11',             label: 'Light' },
+//   { value: 'mapbox://styles/mapbox/dark-v11',              label: 'Dark Matter' },
+//   { value: 'mapbox://styles/mapbox/outdoors-v12',          label: 'Outdoors' },
+//   { value: 'mapbox://styles/mapbox/satellite-v9',          label: 'Satellite' },
+//   { value: 'mapbox://styles/mapbox/satellite-streets-v12', label: 'Satellite Streets' },
+// ]
+// export function styleUrlToStaticId(styleUrl: string): string {
+//   const match = styleUrl.match(/mapbox:\/\/styles\/(.+)/)
+//   return match ? match[1] : 'mapbox/streets-v12'
+// }
+// ... (full Mapbox component omitted for brevity — see git history)
+
+// ── MAPLIBRE VERSION (ACTIVE) ─────────────────────────────────────────────────
+import { useEffect, useRef } from 'react'
+import maplibregl from 'maplibre-gl'
+import 'maplibre-gl/dist/maplibre-gl.css'
 import { MapConfig } from '../../types/builder.types'
 import { useBuilderStore } from '../../store/builderStore'
 import { getLayerHandler } from './map/layerRegistry'
 import { getGeometryType } from './map/handlers/GeoJsonHandler'
 
-const mapboxgl = (window as any).mapboxgl
-// ── Token ─────────────────────────────────────────────────────────────────────
-// Set your Mapbox public token here. Also exported so LazyMapWidget can use it
-// for Static Images API requests (which are free and don't count as map loads).
-export const MAPBOX_TOKEN = process.env.REACT_APP_MAPBOX_TOKEN ?? ''
-mapboxgl.accessToken = MAPBOX_TOKEN
+// CRA bundles the MapLibre worker incorrectly in production builds.
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+maplibregl.workerUrl = `${process.env.PUBLIC_URL ?? ''}/maplibre-gl-csp-worker.js`
 
-// ── Map styles ────────────────────────────────────────────────────────────────
-// Mapbox style IDs — these map to the same visual styles as before.
 export const MAP_STYLES = [
-  { value: 'mapbox://styles/mapbox/streets-v12',       label: 'Streets (Default)' },
-  { value: 'mapbox://styles/mapbox/light-v11',         label: 'Light' },
-  { value: 'mapbox://styles/mapbox/dark-v11',          label: 'Dark Matter' },
-  { value: 'mapbox://styles/mapbox/outdoors-v12',      label: 'Outdoors' },
-  { value: 'mapbox://styles/mapbox/satellite-v9',      label: 'Satellite' },
-  { value: 'mapbox://styles/mapbox/satellite-streets-v12', label: 'Satellite Streets' },
+  { value: 'https://tiles.openfreemap.org/styles/liberty',  label: 'Liberty (Default)' },
+  { value: 'https://tiles.openfreemap.org/styles/bright',   label: 'Bright' },
+  { value: 'https://tiles.openfreemap.org/styles/positron', label: 'Positron (Light)' },
+  { value: 'https://tiles.openfreemap.org/styles/fiord',    label: 'Fiord (Dark)' },
 ]
 
-// Maps a Mapbox style URL to a short style ID used by the Static Images API
-export function styleUrlToStaticId(styleUrl: string): string {
-  const match = styleUrl.match(/mapbox:\/\/styles\/(.+)/)
-  return match ? match[1] : 'mapbox/streets-v12'
-}
+// Stubs kept so LazyMapWidget compiles without changes
+export const MAPBOX_TOKEN = ''
+export function styleUrlToStaticId(_url: string): string { return '' }
 
 interface MapWidgetProps {
   widgetId: string
@@ -1129,7 +1207,6 @@ interface MapWidgetProps {
 // ── BBox from GeoJSON ─────────────────────────────────────────────────────────
 function getBBox(data: any): [[number, number], [number, number]] | null {
   const coords: [number, number][] = []
-
   function collect(geom: any) {
     if (!geom) return
     switch (geom.type) {
@@ -1141,25 +1218,21 @@ function getBBox(data: any): [[number, number], [number, number]] | null {
       case 'MultiPolygon':     geom.coordinates.forEach((p: any) => p.forEach((r: any) => coords.push(...r))); break
     }
   }
-
   ;(data?.features ?? []).forEach((f: any) => collect(f?.geometry))
   if (!coords.length) return null
-
   const lngs = coords.map(c => c[0])
-  const lats = coords.map(c => c[1])
-  return [
-    [Math.min(...lngs), Math.min(...lats)],
-    [Math.max(...lngs), Math.max(...lats)],
-  ]
+  const lats  = coords.map(c => c[1])
+  return [[Math.min(...lngs), Math.min(...lats)], [Math.max(...lngs), Math.max(...lats)]]
+}
+
+// ── Style guard ───────────────────────────────────────────────────────────────
+function sanitizeStyle(raw: string | undefined): string {
+  if (raw && raw.startsWith('https://')) return raw
+  return MAP_STYLES[0].value
 }
 
 // ── Legend ────────────────────────────────────────────────────────────────────
-function createLegend(
-  map: mapboxgl.Map,
-  storeLayers: any[],
-  showLegend: boolean
-) {
-  // Remove any existing legend root
+function createLegend(map: maplibregl.Map, storeLayers: any[], showLegend: boolean) {
   const existing = map.getContainer().querySelector('.gis-legend-root')
   if (existing) existing.remove()
 
@@ -1169,10 +1242,7 @@ function createLegend(
   const container = map.getContainer()
   const root = document.createElement('div')
   root.className = 'gis-legend-root'
-  root.style.cssText = `
-    position: absolute; top: 10px; left: 10px;
-    z-index: 2; pointer-events: none;
-  `
+  root.style.cssText = `position: absolute; top: 10px; left: 10px; z-index: 2; pointer-events: none;`
 
   const toggle = document.createElement('button')
   toggle.title = 'Hide legend'
@@ -1183,7 +1253,7 @@ function createLegend(
     cursor: pointer; display: flex; align-items: center; justify-content: center;
     pointer-events: auto; margin-bottom: 4px;
   `
-  toggle.innerHTML = '<span style="font-size:16px;line-height:1;">☰</span>'
+  toggle.innerHTML = '<span style="font-size:16px;line-height:1;">✕</span>'
 
   const legend = document.createElement('div')
   legend.style.cssText = `
@@ -1194,7 +1264,7 @@ function createLegend(
     border: 1px solid #e5e7eb; border-radius: 14px;
     padding: 12px 14px;
     box-shadow: 0 3px 12px rgba(0,0,0,0.12);
-    color: #111827; display: none; pointer-events: auto;
+    color: #111827; display: block; pointer-events: auto;
   `
 
   const title = document.createElement('p')
@@ -1211,9 +1281,9 @@ function createLegend(
     const item = document.createElement('div')
     item.style.cssText = `
       display: flex; align-items: center; gap: 8px; margin-bottom: 6px;
-      padding: 4px 6px; border-radius: 8px; cursor: default;
-      transition: background 0.15s;
+      padding: 4px 6px; border-radius: 8px; cursor: default; transition: background 0.15s;
     `
+    const zoomBtn = document.createElement('button')
     item.addEventListener('mouseenter', () => { item.style.background = '#f3f4f6'; zoomBtn.style.opacity = '1' })
     item.addEventListener('mouseleave', () => { item.style.background = 'transparent'; zoomBtn.style.opacity = '0' })
 
@@ -1230,7 +1300,6 @@ function createLegend(
     label.textContent = layer.name
     label.style.cssText = 'color:#374151;font-size:11px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0;'
 
-    const zoomBtn = document.createElement('button')
     zoomBtn.title = 'Zoom to layer'
     zoomBtn.style.cssText = `
       flex-shrink: 0; opacity: 0; transition: opacity 0.15s;
@@ -1238,10 +1307,8 @@ function createLegend(
       padding: 2px; display: flex; align-items: center; color: #6b7280;
     `
     zoomBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5">
-      <circle cx="5" cy="5" r="3.5"/>
-      <line x1="7.5" y1="7.5" x2="11" y2="11"/>
-      <line x1="5" y1="3.5" x2="5" y2="6.5"/>
-      <line x1="3.5" y1="5" x2="6.5" y2="5"/>
+      <circle cx="5" cy="5" r="3.5"/><line x1="7.5" y1="7.5" x2="11" y2="11"/>
+      <line x1="5" y1="3.5" x2="5" y2="6.5"/><line x1="3.5" y1="5" x2="6.5" y2="5"/>
     </svg>`
     zoomBtn.addEventListener('click', (e) => {
       e.stopPropagation()
@@ -1271,7 +1338,7 @@ function createLegend(
 
 // ── Sync all layers via registry ──────────────────────────────────────────────
 function syncLayers(
-  map: mapboxgl.Map,
+  map: maplibregl.Map,
   storeLayers: any[],
   prevLayerIds: React.MutableRefObject<Set<string>>,
   showLegend: boolean,
@@ -1280,7 +1347,6 @@ function syncLayers(
 ) {
   const currentIds = new Set(storeLayers.map(l => l.id))
 
-  // Remove deleted layers
   prevLayerIds.current.forEach(id => {
     if (!currentIds.has(id)) {
       const deleted = storeLayers.find(l => l.id === id)
@@ -1291,10 +1357,8 @@ function syncLayers(
 
   storeLayers.forEach(layer => {
     if (!layer.data && !(layer as any).url) return
-
     const handler = getLayerHandler(layer.type)
     const exists  = !!map.getSource(layer.id)
-
     if (!exists) {
       handler.add(map, layer, showPopupRef, getConfig)
       if (!layer.visible) handler.setVisibility(map, layer.id, false)
@@ -1308,20 +1372,12 @@ function syncLayers(
   createLegend(map, storeLayers, showLegend)
 }
 
-// ── Style guard ───────────────────────────────────────────────────────────────
-// Rejects any saved style that isn't a valid mapbox:// URL (e.g. old maplibre
-// URLs, bare words like "satellite" from stale Supabase/localStorage data).
-function sanitizeStyle(raw: string | undefined): string {
-  if (raw && raw.startsWith('mapbox://styles/')) return raw
-  return MAP_STYLES[0].value  // fall back to Streets
-}
-
 // ── Component ─────────────────────────────────────────────────────────────────
 function MapWidget({ widgetId, config }: MapWidgetProps) {
   const mapContainer = useRef<HTMLDivElement>(null)
-  const mapRef       = useRef<mapboxgl.Map | null>(null)
-  const navRef       = useRef<mapboxgl.NavigationControl | null>(null)
-  const scaleRef     = useRef<mapboxgl.ScaleControl | null>(null)
+  const mapRef       = useRef<maplibregl.Map | null>(null)
+  const navRef       = useRef<maplibregl.NavigationControl | null>(null)
+  const scaleRef     = useRef<maplibregl.ScaleControl | null>(null)
   const isLoaded     = useRef(false)
   const prevLayerIds = useRef<Set<string>>(new Set())
   const showLegendRef = useRef(config.showLegend !== false)
@@ -1330,7 +1386,6 @@ function MapWidget({ widgetId, config }: MapWidgetProps) {
 
   const { layers: storeLayers, zoomToLayerId } = useBuilderStore()
 
-  // Keep refs in sync every render
   showLegendRef.current = config.showLegend !== false
   showPopupRef.current  = config.showPopup  !== false
   configRef.current     = config
@@ -1338,33 +1393,25 @@ function MapWidget({ widgetId, config }: MapWidgetProps) {
   const getConfig = () => configRef.current
 
   const mapStyle = sanitizeStyle(config.mapStyle)
-  const zoom     = config.zoom     ?? 10
+  const zoom     = config.zoom ?? 10
   const center   = (config as any).center ?? [31.2357, 30.0444]
 
   // ── 1. Initialize map ─────────────────────────────────
   useEffect(() => {
     if (mapRef.current || !mapContainer.current) return
-
-    const map = new mapboxgl.Map({
+    const map = new maplibregl.Map({
       container: mapContainer.current,
       style: mapStyle,
       center,
       zoom,
       attributionControl: false,
     })
-
-    map.addControl(
-      new mapboxgl.AttributionControl({ compact: true }),
-      'bottom-right'
-    )
-
+    map.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-right')
     map.on('load', () => {
       isLoaded.current = true
       syncLayers(map, storeLayers, prevLayerIds, showLegendRef.current, showPopupRef, getConfig)
     })
-
     mapRef.current = map
-
     return () => {
       isLoaded.current = false
       prevLayerIds.current = new Set()
@@ -1406,7 +1453,7 @@ function MapWidget({ widgetId, config }: MapWidgetProps) {
     if (!map) return
     if (navRef.current) { try { map.removeControl(navRef.current) } catch {} navRef.current = null }
     if (config.showNavigation !== false) {
-      const nav = new mapboxgl.NavigationControl()
+      const nav = new maplibregl.NavigationControl()
       map.addControl(nav, 'top-right')
       navRef.current = nav
     }
@@ -1418,7 +1465,7 @@ function MapWidget({ widgetId, config }: MapWidgetProps) {
     if (!map) return
     if (scaleRef.current) { try { map.removeControl(scaleRef.current) } catch {} scaleRef.current = null }
     if (config.showScale) {
-      const scale = new mapboxgl.ScaleControl({ unit: 'metric' })
+      const scale = new maplibregl.ScaleControl({ unit: 'metric' })
       map.addControl(scale, 'bottom-left')
       scaleRef.current = scale
     }
@@ -1429,13 +1476,9 @@ function MapWidget({ widgetId, config }: MapWidgetProps) {
     const map = mapRef.current
     if (!map) return
     if (config.allowZoom === false) {
-      map.scrollZoom.disable()
-      map.doubleClickZoom.disable()
-      map.boxZoom.disable()
+      map.scrollZoom.disable(); map.doubleClickZoom.disable(); map.boxZoom.disable()
     } else {
-      map.scrollZoom.enable()
-      map.doubleClickZoom.enable()
-      map.boxZoom.enable()
+      map.scrollZoom.enable(); map.doubleClickZoom.enable(); map.boxZoom.enable()
     }
   }, [config.allowZoom])
 
@@ -1444,11 +1487,9 @@ function MapWidget({ widgetId, config }: MapWidgetProps) {
     const map = mapRef.current
     if (!map) return
     if (config.allowPan === false) {
-      map.dragPan.disable()
-      map.keyboard.disable()
+      map.dragPan.disable(); map.keyboard.disable()
     } else {
-      map.dragPan.enable()
-      map.keyboard.enable()
+      map.dragPan.enable(); map.keyboard.enable()
     }
   }, [config.allowPan])
 
@@ -1463,13 +1504,11 @@ function MapWidget({ widgetId, config }: MapWidgetProps) {
   useEffect(() => {
     const map = mapRef.current
     if (!map || !isLoaded.current || !zoomToLayerId) return
-
     const layer = storeLayers.find(l => l.id === zoomToLayerId)
     if (layer?.data) {
       const bbox = getBBox(layer.data)
       if (bbox) map.fitBounds(bbox, { padding: 60, duration: 800, maxZoom: 18 })
     }
-
     useBuilderStore.setState({ zoomToLayerId: null })
   }, [zoomToLayerId])  // eslint-disable-line react-hooks/exhaustive-deps
 

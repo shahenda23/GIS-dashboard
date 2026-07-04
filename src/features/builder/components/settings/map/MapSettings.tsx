@@ -1,4 +1,5 @@
-// import { useState } from 'react'
+
+// import { useState, useCallback, useMemo } from 'react'
 // import { useTheme } from '../../../../../context/ThemeContext'
 // import { useBuilderStore } from '../../../store/builderStore'
 // import { MapConfig, PopupFieldConfig } from '../../../types/builder.types'
@@ -7,81 +8,92 @@
 // import LayerSelect from '../shared/LayerSelect'
 // import SliderInput from '../shared/SliderInput'
 // import ToggleSwitch from '../shared/ToggleSwitch'
-// import { BASEMAP_STYLES } from '../../widgets/map/BasemapGallery'
 
 // interface MapSettingsProps {
 //   widgetId: string
 //   config: Partial<MapConfig>
 // }
 
+// const MAP_STYLES = [
+//   { value: 'mapbox://styles/mapbox/streets-v12',           label: 'Streets (Default)' },
+//   { value: 'mapbox://styles/mapbox/light-v11',             label: 'Light' },
+//   { value: 'mapbox://styles/mapbox/dark-v11',              label: 'Dark' },
+//   { value: 'mapbox://styles/mapbox/outdoors-v12',          label: 'Outdoors' },
+//   { value: 'mapbox://styles/mapbox/satellite-v9',          label: 'Satellite' },
+//   { value: 'mapbox://styles/mapbox/satellite-streets-v12', label: 'Satellite + Streets' },
+// ]
+
+// const TABS = {
+//   en: [{ id: 'data', label: 'Data' }, { id: 'visual', label: 'Visual' }, { id: 'behavior', label: 'Behavior' }],
+//   ar: [{ id: 'data', label: 'البيانات' }, { id: 'visual', label: 'المظهر' }, { id: 'behavior', label: 'السلوك' }],
+// }
+
+// const TRANSLATIONS = {
+//   en: {
+//     layer: 'Map Layer',
+//     style: 'Map Style',
+//     zoom: 'Default Zoom Level',
+//     navigation: 'Show Navigation Controls',
+//     navigationDesc: 'Shows zoom in/out and compass buttons',
+//     scale: 'Show Scale Bar',
+//     scaleDesc: 'Shows a distance scale at the bottom of the map',
+//     legend: 'Show Legend',
+//     popup: 'Show Feature Popup',
+//     popupDesc: 'Shows a popup with feature info when clicking on the map',
+//     legendDesc: 'Shows a panel listing the visible map layers',
+//     allowZoom: 'Allow User Zoom',
+//     allowZoomDesc: 'User can zoom in/out with scroll or pinch',
+//     allowPan: 'Allow User Pan',
+//     allowPanDesc: 'User can drag the map to move around',
+//   },
+//   ar: {
+//     layer: 'طبقة الخريطة',
+//     style: 'نمط الخريطة',
+//     zoom: 'مستوى التكبير الافتراضي',
+//     navigation: 'إظهار أدوات التنقل',
+//     navigationDesc: 'يعرض أزرار التكبير والبوصلة',
+//     scale: 'إظهار مقياس المسافة',
+//     scaleDesc: 'يعرض مقياساً للمسافة في أسفل الخريطة',
+//     popup: 'إظهار النافذة المنبثقة',
+//     popupDesc: 'يعرض نافذة منبثقة مع معلومات الميزات عند النقر على الخريطة',
+//     legend: 'إظهار المفتاح',
+//     legendDesc: 'يعرض لوحة بأسماء الطبقات المرئية على الخريطة',
+//     allowZoom: 'السماح بالتكبير',
+//     allowZoomDesc: 'يمكن للمستخدم التكبير بالتمرير أو القرص',
+//     allowPan: 'السماح بالتحريك',
+//     allowPanDesc: 'يمكن للمستخدم سحب الخريطة للتنقل',
+//   },
+// }
+
 // function MapSettings({ widgetId, config }: MapSettingsProps) {
 //   const { lang } = useTheme()
 //   const [activeTab, setActiveTab] = useState('data')
 
+//   const t    = TRANSLATIONS[lang]
+//   const tabs = TABS[lang]
+
 //   const layers = useBuilderStore(s => s.layers)
-//   const selectedLayer = layers.find(l => l.id === config.layerId)
-//   const availableFields = selectedLayer?.fields ?? []
 
-//   const popupFields: PopupFieldConfig[] = config.popupFields?.length
-//   ? config.popupFields
-//   : availableFields.map(f => ({ field: f, alias: f, visible: true }))
+//   const availableFields = useMemo(
+//     () => layers.find(l => l.id === config.layerId)?.fields ?? [],
+//     [layers, config.layerId]
+//   )
 
+//   const popupFields = useMemo<PopupFieldConfig[]>(
+//     () => config.popupFields?.length
+//       ? config.popupFields
+//       : availableFields.map(f => ({ field: f, alias: f, visible: true })),
+//     [config.popupFields, availableFields]
+//   )
 
-
-//   const tabs = {
-//     en: [{ id: 'data', label: 'Data' }, { id: 'visual', label: 'Visual' }, { id: 'behavior', label: 'Behavior' }],
-//     ar: [{ id: 'data', label: 'البيانات' }, { id: 'visual', label: 'المظهر' }, { id: 'behavior', label: 'السلوك' }],
-//   }[lang]
-
-//   const t = {
-//     en: {
-//       layer: 'Map Layer',
-//       style: 'Map Style',
-//       zoom: 'Default Zoom Level',
-//       navigation: 'Show Navigation Controls',
-//       navigationDesc: 'Shows zoom in/out and compass buttons',
-//       scale: 'Show Scale Bar',
-//       scaleDesc: 'Shows a distance scale at the bottom of the map',
-//       legend: 'Show Legend',
-//       popup: 'Show Feature Popup',
-//       popupDesc: 'Shows a popup with feature info when clicking on the map',
-//       legendDesc: 'Shows a panel listing the visible map layers',
-//       basemapGallery: 'Show Basemap Gallery',
-//       basemapGalleryDesc: 'Shows the basemap switcher panel on the map',
-//       allowZoom: 'Allow User Zoom',
-//       allowZoomDesc: 'User can zoom in/out with scroll or pinch',
-//       allowPan: 'Allow User Pan',
-//       allowPanDesc: 'User can drag the map to move around',
-//     },
-//     ar: {
-//       layer: 'طبقة الخريطة',
-//       style: 'نمط الخريطة',
-//       zoom: 'مستوى التكبير الافتراضي',
-//       navigation: 'إظهار أدوات التنقل',
-//       navigationDesc: 'يعرض أزرار التكبير والبوصلة',
-//       scale: 'إظهار مقياس المسافة',
-//       scaleDesc: 'يعرض مقياساً للمسافة في أسفل الخريطة',
-//       popup: 'إظهار النافذة المنبثقة',
-//       popupDesc: 'يعرض نافذة منبثقة مع معلومات الميزات عند النقر على الخريطة',
-//       legend: 'إظهار المفتاح',
-//       legendDesc: 'يعرض لوحة بأسماء الطبقات المرئية على الخريطة',
-//       basemapGallery: 'إظهار معرض الخرائط الأساسية',
-//       basemapGalleryDesc: 'يعرض لوحة تبديل الخريطة الأساسية على الخريطة',
-//       allowZoom: 'السماح بالتكبير',
-//       allowZoomDesc: 'يمكن للمستخدم التكبير بالتمرير أو القرص',
-//       allowPan: 'السماح بالتحريك',
-//       allowPanDesc: 'يمكن للمستخدم سحب الخريطة للتنقل',
-//     },
-//   }[lang]
-
-//   function updateConfig(patch: Partial<MapConfig>) {
+//   const updateConfig = useCallback((patch: Partial<MapConfig>) => {
 //     useBuilderStore.setState(state => ({
 //       widgets: state.widgets.map(w =>
 //         w.id === widgetId ? { ...w, config: { ...w.config, ...patch } } : w
 //       ),
 //       isSaved: false,
 //     }))
-//   }
+//   }, [widgetId])
 
 //   return (
 //     <div>
@@ -98,19 +110,19 @@
 
 //           <SettingsSection title={t.style}>
 //             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-//               {BASEMAP_STYLES.map(style => (
+//               {MAP_STYLES.map(style => (
 //                 <label
-//                   key={style.id}
+//                   key={style.value}
 //                   style={{
 //                     display: 'flex',
 //                     alignItems: 'center',
 //                     gap: '8px',
 //                     padding: '8px 10px',
 //                     borderRadius: 'var(--radius-md)',
-//                     border: `1px solid ${(config.mapStyle ?? BASEMAP_STYLES[0].id) === style.id
+//                     border: `1px solid ${(config.mapStyle ?? MAP_STYLES[0].value) === style.value
 //                       ? 'var(--accent)'
 //                       : 'var(--border)'}`,
-//                     background: (config.mapStyle ?? BASEMAP_STYLES[0].id) === style.id
+//                     background: (config.mapStyle ?? MAP_STYLES[0].value) === style.value
 //                       ? 'var(--accent-light)'
 //                       : 'var(--page-bg)',
 //                     cursor: 'pointer',
@@ -122,9 +134,9 @@
 //                   <input
 //                     type="radio"
 //                     name="mapStyle"
-//                     value={style.id}
-//                     checked={(config.mapStyle ?? BASEMAP_STYLES[0].id) === style.id}
-//                     onChange={() => updateConfig({ mapStyle: style.id })}
+//                     value={style.value}
+//                     checked={(config.mapStyle ?? MAP_STYLES[0].value) === style.value}
+//                     onChange={() => updateConfig({ mapStyle: style.value })}
 //                     style={{ accentColor: 'var(--accent)' }}
 //                   />
 //                   {style.label}
@@ -157,21 +169,15 @@
 //           />
 //           <ToggleSwitch
 //             label={t.legend}
-//             value={config.showLegend ?? true}
+//             value={config.showLegend ?? false}
 //             onChange={v => updateConfig({ showLegend: v })}
 //             description={t.legendDesc}
 //           />
 //           <ToggleSwitch
 //             label={t.popup}
-//             value={config.showPopup ?? true}
+//             value={config.showPopup ?? false}
 //             onChange={v => updateConfig({ showPopup: v })}
 //             description={t.popupDesc}
-//           />
-//           <ToggleSwitch
-//             label={t.basemapGallery}
-//             value={config.showBasemapGallery ?? true}
-//             onChange={v => updateConfig({ showBasemapGallery: v })}
-//             description={t.basemapGalleryDesc}
 //           />
 
 //           {config.showPopup && availableFields.length > 0 && (
@@ -218,43 +224,38 @@
 //                       opacity: pf.visible ? 1 : 0.5,
 //                     }}
 //                   >
-//                     {/* visibility checkbox */}
 //                     <input
 //                       type="checkbox"
 //                       checked={pf.visible}
 //                       onChange={e => {
-//                         const next = [...popupFields]
-//                         next[i] = { ...pf, visible: e.target.checked }
-//                         updateConfig({ popupFields: next })
+//                         const updated = popupFields.map((f, j) =>
+//                           j === i ? { ...f, visible: e.target.checked } : f
+//                         )
+//                         updateConfig({ popupFields: updated })
 //                       }}
 //                       style={{ accentColor: 'var(--accent)', cursor: 'pointer' }}
 //                     />
-
 //                     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-//                       {/* alias input */}
+//                       <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{pf.field}</span>
 //                       <input
 //                         type="text"
 //                         value={pf.alias}
 //                         onChange={e => {
-//                           const next = [...popupFields]
-//                           next[i] = { ...pf, alias: e.target.value }
-//                           updateConfig({ popupFields: next })
+//                           const updated = popupFields.map((f, j) =>
+//                             j === i ? { ...f, alias: e.target.value } : f
+//                           )
+//                           updateConfig({ popupFields: updated })
 //                         }}
+//                         placeholder="Display label"
 //                         style={{
-//                           width: '100%',
 //                           padding: '4px 6px',
 //                           borderRadius: 'var(--radius-sm)',
 //                           border: '1px solid var(--border)',
 //                           background: 'var(--input-bg)',
 //                           color: 'var(--text-primary)',
-//                           fontSize: '12px',
-//                           boxSizing: 'border-box',
+//                           fontSize: '11px',
 //                         }}
 //                       />
-//                       {/* original field name as hint */}
-//                       <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
-//                         {pf.field}
-//                       </span>
 //                     </div>
 //                   </div>
 //                 ))}
@@ -266,6 +267,12 @@
 
 //       {activeTab === 'behavior' && (
 //         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+//           <ToggleSwitch
+//             label={t.allowZoom}
+//             value={config.allowZoom ?? true}
+//             onChange={v => updateConfig({ allowZoom: v })}
+//             description={t.allowZoomDesc}
+//           />
 //           <ToggleSwitch
 //             label={t.allowPan}
 //             value={config.allowPan ?? true}
@@ -573,14 +580,12 @@ interface MapSettingsProps {
   config: Partial<MapConfig>
 }
 
-// Mapbox-hosted styles — same visual categories as before, now correct URLs
+// OpenFreeMap styles (MapLibre — no token required)
 const MAP_STYLES = [
-  { value: 'mapbox://styles/mapbox/streets-v12',           label: 'Streets (Default)' },
-  { value: 'mapbox://styles/mapbox/light-v11',             label: 'Light' },
-  { value: 'mapbox://styles/mapbox/dark-v11',              label: 'Dark' },
-  { value: 'mapbox://styles/mapbox/outdoors-v12',          label: 'Outdoors' },
-  { value: 'mapbox://styles/mapbox/satellite-v9',          label: 'Satellite' },
-  { value: 'mapbox://styles/mapbox/satellite-streets-v12', label: 'Satellite + Streets' },
+  { value: 'https://tiles.openfreemap.org/styles/liberty',  label: 'Liberty (Default)' },
+  { value: 'https://tiles.openfreemap.org/styles/bright',   label: 'Bright' },
+  { value: 'https://tiles.openfreemap.org/styles/positron', label: 'Positron (Light)' },
+  { value: 'https://tiles.openfreemap.org/styles/fiord',    label: 'Fiord (Dark)' },
 ]
 
 function MapSettings({ widgetId, config }: MapSettingsProps) {

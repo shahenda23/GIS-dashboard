@@ -43,8 +43,6 @@ function WidgetToolbar() {
       y: 0,
       w: type === 'map' ? 8 : type === 'kpi' ? 3 : 4,
       h: type === 'kpi' ? 2 : type === 'map' ? 5 : 3,
-      minW: 2,
-      minH: 2,
       config: {},
     })
   }

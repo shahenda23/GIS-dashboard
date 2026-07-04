@@ -36,7 +36,7 @@ function TemplatePickerPage() {
 
         {/* Back */}
         <button
-          onClick={() => navigate('/')}
+          onClick={() => navigate('/home')}
           style={{
             display: 'flex',
             alignItems: 'center',

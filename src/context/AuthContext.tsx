@@ -6,15 +6,17 @@ interface AuthContextType {
   user: User | null
   session: Session | null
   loading: boolean
+  isSigningOut: boolean
   signOut: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | null>(null)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser]       = useState<User | null>(null)
-  const [session, setSession] = useState<Session | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [user, setUser]             = useState<User | null>(null)
+  const [session, setSession]       = useState<Session | null>(null)
+  const [loading, setLoading]       = useState(true)
+  const [isSigningOut, setIsSigningOut] = useState(false)
 
   useEffect(() => {
     // get current session
@@ -37,11 +39,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   async function signOut() {
+    setIsSigningOut(true)
+    setUser(null)
+    setSession(null)
     await supabase.auth.signOut()
+    setIsSigningOut(false)
   }
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, isSigningOut, signOut }}>
       {children}
     </AuthContext.Provider>
   )

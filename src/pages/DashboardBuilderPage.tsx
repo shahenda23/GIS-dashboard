@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useBlocker } from 'react-router-dom'
+import UnsavedChangesDialog from '../components/UnsavedChangesDialog'
 import { useBuilderStore } from '../features/builder/store/builderStore'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
@@ -20,8 +21,10 @@ function DashboardBuilderPage() {
   const { user }        = useAuth()
   const { lang }        = useTheme()
   const loadDashboard   = useBuilderStore(s => s.loadDashboard)
+  const saveDashboard   = useBuilderStore(s => s.saveDashboard)
   const storeIsLoading  = useBuilderStore(s => s.isLoading)
   const ownerId         = useBuilderStore(s => s.ownerId)
+  const isSaved         = useBuilderStore(s => s.isSaved)
 
   // Starts true so the very first render never shows stale store content
   const [isInitializing, setIsInitializing] = useState(true)
@@ -29,12 +32,30 @@ function DashboardBuilderPage() {
   const isTemplateRoute = !id || TEMPLATE_IDS.has(id)
   const isLoading = isInitializing || storeIsLoading
 
+  // ── Guard: browser refresh / tab close / external navigation ─────────────
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (!isSaved) {
+        e.preventDefault()
+        e.returnValue = ''
+      }
+    }
+    window.addEventListener('beforeunload', handler)
+    return () => window.removeEventListener('beforeunload', handler)
+  }, [isSaved])
+
+  // ── Guard: React Router in-app back / forward navigation ─────────────────
+  const blocker = useBlocker(
+    ({ currentLocation, nextLocation }) =>
+      !isSaved && currentLocation.pathname !== nextLocation.pathname
+  )
+
   useEffect(() => {
     setIsInitializing(true)
 
     if (!isTemplateRoute && id) {
       // Real dashboard UUID — load from Supabase
-      if (useBuilderStore.getState().dashboardId !== id) {
+      if (useBuilderStore.getState().dashboardId !== id || !useBuilderStore.getState().isSaved) {
         useBuilderStore.setState({
           widgets:          [],
           layers:           [],
@@ -119,6 +140,14 @@ function DashboardBuilderPage() {
         }}>
           <WidgetDock />
         </div>
+      )}
+
+      {blocker.state === 'blocked' && (
+        <UnsavedChangesDialog
+          onSave={async () => { await saveDashboard(); blocker.proceed?.() }}
+          onIgnore={() => { useBuilderStore.setState({ isSaved: true }); blocker.proceed?.() }}
+          onCancel={() => blocker.reset?.()}
+        />
       )}
     </div>
   )

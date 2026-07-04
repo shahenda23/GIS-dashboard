@@ -297,7 +297,7 @@ export default function NotFoundPage() {
             {t.body}
           </p>
           <button
-            onClick={() => navigate('/')}
+            onClick={() => navigate('/home')}
             onMouseEnter={e => { e.currentTarget.style.background = 'var(--accent-hover)' }}
             onMouseLeave={e => { e.currentTarget.style.background = 'var(--accent)' }}
             style={{

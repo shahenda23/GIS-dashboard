@@ -27,7 +27,7 @@ function UserMenu() {
 
   async function handleSignOut() {
     await signOut()
-    navigate('/login')
+    navigate('/')
   }
 
   if (!user) return null
@@ -132,7 +132,7 @@ function UserMenu() {
                 </svg>
               }
               label={t.dashboards}
-              onClick={() => { navigate('/'); setOpen(false) }}
+              onClick={() => { navigate('/home'); setOpen(false) }}
             />
 
             {/* Templates */}

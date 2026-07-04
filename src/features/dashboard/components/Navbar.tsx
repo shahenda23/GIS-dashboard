@@ -17,12 +17,12 @@ function Navbar({ activeTab = 'dashboards' }: NavbarProps) {
 
   const tabs = lang === 'en'
     ? [
-        { label: 'Dashboards', tab: 'dashboards' as const, to: '/' },
+        { label: 'Dashboards', tab: 'dashboards' as const, to: '/home' },
         { label: 'Templates',  tab: 'templates'  as const, to: '/templates' },
         { label: 'Docs',       tab: null,                  to: '/docs' },
       ]
     : [
-        { label: 'لوحاتي',  tab: 'dashboards' as const, to: '/' },
+        { label: 'لوحاتي',  tab: 'dashboards' as const, to: '/home' },
         { label: 'القوالب', tab: 'templates'  as const, to: '/templates' },
         { label: 'التوثيق', tab: null,                  to: '/docs' },
       ]
@@ -43,7 +43,7 @@ function Navbar({ activeTab = 'dashboards' }: NavbarProps) {
 
       {/* ══ LEFT — pill brand ═══════════════════════════════════════ */}
       <div
-        onClick={() => navigate('/')}
+        onClick={() => navigate('/home')}
         style={{
           alignSelf:            'center',
           display:              'flex',

@@ -1,6 +1,202 @@
+// import mapboxgl from 'mapbox-gl'
+// import type { GeoLayer, MapConfig } from '../../../../types/builder.types'
+// import type { LayerHandler } from '../LayerHandler'
+// import type { MutableRefObject } from 'react'
+
+// export function getGeometryType(data: any): string {
+//   const first = data?.features?.[0]?.geometry
+//   return first?.type ?? 'LineString'
+// }
+
+// function injectPopupStyles() {
+//   if (document.getElementById('gis-popup-styles')) return
+//   const style = document.createElement('style')
+//   style.id = 'gis-popup-styles'
+//   style.textContent = `
+//     .mapboxgl-popup-content {
+//       padding: 0 !important;
+//       border-radius: 10px !important;
+//       box-shadow: 0 4px 16px rgba(0,0,0,0.12) !important;
+//       border: 1px solid #e2e8f0 !important;
+//       background: #fff !important;
+//       min-width: 180px !important;
+//     }
+//     .mapboxgl-popup-close-button {
+//       font-size: 15px !important;
+//       color: #64748b !important;
+//       top: 8px !important;
+//       right: 10px !important;
+//       background: transparent !important;
+//       border: none !important;
+//       cursor: pointer !important;
+//       line-height: 1 !important;
+//       padding: 0 !important;
+//       z-index: 1 !important;
+//     }
+//     .mapboxgl-popup-close-button:hover {
+//       color: #0f172a !important;
+//     }
+//   `
+//   document.head.appendChild(style)
+// }
+
+// function addPopup(
+//   map: mapboxgl.Map,
+//   layerId: string,
+//   showPopupRef: MutableRefObject<boolean>,
+//   getConfig: () => Partial<MapConfig>
+// ) {
+//   injectPopupStyles()
+
+//   const clickLayers = [`${layerId}-layer`]
+
+//   clickLayers.forEach(lid => {
+//     map.on('mouseenter', lid, () => {
+//       if (showPopupRef.current) map.getCanvas().style.cursor = 'pointer'
+//     })
+//     map.on('mouseleave', lid, () => {
+//       map.getCanvas().style.cursor = ''
+//     })
+
+//     map.on('click', lid, (e) => {
+//       if (!showPopupRef.current) return
+//       const feature = e.features?.[0]
+//       if (!feature) return
+
+//       const props = feature.properties ?? {}
+//       const cfg = getConfig()
+//       const titleField = cfg.popupTitleField
+//       const popupFields = cfg.popupFields
+
+//       const titleText = titleField && props[titleField] != null
+//         ? String(props[titleField])
+//         : 'Feature Info'
+
+//       const visibleFields = popupFields?.filter(f => f.visible) ?? []
+//       const entries = visibleFields.length > 0
+//         ? visibleFields.filter(pf => props[pf.field] != null).map(pf => [pf.alias, props[pf.field]])
+//         : Object.entries(props).filter(([, v]) => v != null && v !== '').slice(0, 8)
+
+//       const rowsHtml = entries.length > 0
+//         ? entries.map(([k, v]) => `
+//             <div style="display:flex;justify-content:space-between;align-items:baseline;gap:16px;padding:5px 0;border-bottom:1px solid #f1f5f9;">
+//               <span style="font-size:11px;color:#94a3b8;white-space:nowrap;flex-shrink:0;">${k}</span>
+//               <span style="font-size:11px;color:#1e293b;font-weight:500;text-align:right;word-break:break-word;">${v}</span>
+//             </div>`).join('')
+//         : `<p style="font-size:11px;color:#94a3b8;margin:0;">No properties</p>`
+
+//       const geometry = feature.geometry as any
+//       const coords: [number, number] = geometry.type === 'Point'
+//         ? geometry.coordinates
+//         : e.lngLat.toArray() as [number, number]
+
+//       new mapboxgl.Popup({ maxWidth: '280px', closeButton: true, closeOnClick: true })
+//         .setLngLat(coords)
+//         .setHTML(`
+//           <div style="font-family:-apple-system,BlinkMacSystemFont,sans-serif;padding:12px 14px 10px;">
+//             <p style="margin:0 0 10px;font-size:12px;font-weight:600;color:#0f172a;padding-right:16px;">${titleText}</p>
+//             <div>${rowsHtml}</div>
+//           </div>
+//         `)
+//         .addTo(map)
+//     })
+//   })
+// }
+
+// export class GeoJsonHandler implements LayerHandler {
+//   canHandle(type: GeoLayer['type']) {
+//     return ['geojson', 'csv', 'kml', 'gpx', 'shapefile'].includes(type)
+//   }
+
+//   add(
+//     map: mapboxgl.Map,
+//     layer: GeoLayer,
+//     showPopupRef: MutableRefObject<boolean>,
+//     getConfig: () => Partial<MapConfig>
+//   ) {
+//     this.remove(map, layer.id)
+
+//     try {
+//       map.addSource(layer.id, { type: 'geojson', data: layer.data })
+//     } catch (err) {
+//       console.warn(`GeoJsonHandler: addSource failed for ${layer.id}:`, err)
+//       return
+//     }
+
+//     const geoType = getGeometryType(layer.data)
+
+//     try {
+//       if (geoType === 'Point' || geoType === 'MultiPoint') {
+//         map.addLayer({
+//           id: `${layer.id}-layer`,
+//           type: 'circle',
+//           source: layer.id,
+//           paint: {
+//             'circle-radius': 6,
+//             'circle-color': layer.color,
+//             'circle-opacity': 0.85,
+//             'circle-stroke-width': 1.5,
+//             'circle-stroke-color': '#ffffff',
+//           },
+//         })
+//       } else if (geoType === 'Polygon' || geoType === 'MultiPolygon') {
+//         map.addLayer({
+//           id: `${layer.id}-layer`,
+//           type: 'fill',
+//           source: layer.id,
+//           paint: { 'fill-color': layer.color, 'fill-opacity': 0.4 },
+//         })
+//         map.addLayer({
+//           id: `${layer.id}-outline`,
+//           type: 'line',
+//           source: layer.id,
+//           paint: { 'line-color': layer.color, 'line-width': 1.5 },
+//         })
+//       } else {
+//         map.addLayer({
+//           id: `${layer.id}-layer`,
+//           type: 'line',
+//           source: layer.id,
+//           paint: { 'line-color': layer.color, 'line-width': 2.5, 'line-opacity': 0.9 },
+//         })
+//       }
+
+//       addPopup(map, layer.id, showPopupRef, getConfig)
+//     } catch (err) {
+//       console.warn(`GeoJsonHandler: addLayer failed for ${layer.id}:`, err)
+//     }
+//   }
+
+//   remove(map: mapboxgl.Map, layerId: string) {
+//     try { if (map.getLayer(`${layerId}-outline`)) map.removeLayer(`${layerId}-outline`) } catch {}
+//     try { if (map.getLayer(`${layerId}-layer`))   map.removeLayer(`${layerId}-layer`)   } catch {}
+//     try { if (map.getSource(layerId))              map.removeSource(layerId)             } catch {}
+//   }
+
+//   setVisibility(map: mapboxgl.Map, layerId: string, visible: boolean) {
+//     const v = visible ? 'visible' : 'none'
+//     try { if (map.getLayer(`${layerId}-layer`))   map.setLayoutProperty(`${layerId}-layer`,   'visibility', v) } catch {}
+//     try { if (map.getLayer(`${layerId}-outline`)) map.setLayoutProperty(`${layerId}-outline`, 'visibility', v) } catch {}
+//   }
+
+//   updateStyle(map: mapboxgl.Map, layer: GeoLayer) {
+//     const geoType = getGeometryType(layer.data)
+//     try {
+//       if (geoType === 'Point' || geoType === 'MultiPoint') {
+//         map.setPaintProperty(`${layer.id}-layer`, 'circle-color', layer.color)
+//       } else if (geoType === 'Polygon' || geoType === 'MultiPolygon') {
+//         map.setPaintProperty(`${layer.id}-layer`,   'fill-color',  layer.color)
+//         map.setPaintProperty(`${layer.id}-outline`, 'line-color',  layer.color)
+//       } else {
+//         map.setPaintProperty(`${layer.id}-layer`, 'line-color', layer.color)
+//       }
+//     } catch {}
+//   }
+// }
+ 
 // import type { MutableRefObject } from 'react'
 // import maplibregl from 'maplibre-gl'
-// import type { GeoLayer, MapConfig } from '../../../../types/builder.types'
+// import type { GeoLayer, MapConfig } from '../../../../../types/builder.types'
 // import type { LayerHandler } from '../LayerHandler'
 
 // export function getGeometryType(data: any): string {
@@ -177,8 +373,7 @@
 //     } catch {}
 //   }
 // }
-
-import mapboxgl from 'mapbox-gl'
+import maplibregl from 'maplibre-gl'
 import type { GeoLayer, MapConfig } from '../../../../types/builder.types'
 import type { LayerHandler } from '../LayerHandler'
 import type { MutableRefObject } from 'react'
@@ -193,7 +388,7 @@ function injectPopupStyles() {
   const style = document.createElement('style')
   style.id = 'gis-popup-styles'
   style.textContent = `
-    .mapboxgl-popup-content {
+    .maplibregl-popup-content {
       padding: 0 !important;
       border-radius: 10px !important;
       box-shadow: 0 4px 16px rgba(0,0,0,0.12) !important;
@@ -201,7 +396,7 @@ function injectPopupStyles() {
       background: #fff !important;
       min-width: 180px !important;
     }
-    .mapboxgl-popup-close-button {
+    .maplibregl-popup-close-button {
       font-size: 15px !important;
       color: #64748b !important;
       top: 8px !important;
@@ -213,7 +408,7 @@ function injectPopupStyles() {
       padding: 0 !important;
       z-index: 1 !important;
     }
-    .mapboxgl-popup-close-button:hover {
+    .maplibregl-popup-close-button:hover {
       color: #0f172a !important;
     }
   `
@@ -221,7 +416,7 @@ function injectPopupStyles() {
 }
 
 function addPopup(
-  map: mapboxgl.Map,
+  map: maplibregl.Map,
   layerId: string,
   showPopupRef: MutableRefObject<boolean>,
   getConfig: () => Partial<MapConfig>
@@ -270,7 +465,7 @@ function addPopup(
         ? geometry.coordinates
         : e.lngLat.toArray() as [number, number]
 
-      new mapboxgl.Popup({ maxWidth: '280px', closeButton: true, closeOnClick: true })
+      new maplibregl.Popup({ maxWidth: '280px', closeButton: true, closeOnClick: true })
         .setLngLat(coords)
         .setHTML(`
           <div style="font-family:-apple-system,BlinkMacSystemFont,sans-serif;padding:12px 14px 10px;">
@@ -289,7 +484,7 @@ export class GeoJsonHandler implements LayerHandler {
   }
 
   add(
-    map: mapboxgl.Map,
+    map: maplibregl.Map,
     layer: GeoLayer,
     showPopupRef: MutableRefObject<boolean>,
     getConfig: () => Partial<MapConfig>
@@ -347,19 +542,19 @@ export class GeoJsonHandler implements LayerHandler {
     }
   }
 
-  remove(map: mapboxgl.Map, layerId: string) {
+  remove(map: maplibregl.Map, layerId: string) {
     try { if (map.getLayer(`${layerId}-outline`)) map.removeLayer(`${layerId}-outline`) } catch {}
     try { if (map.getLayer(`${layerId}-layer`))   map.removeLayer(`${layerId}-layer`)   } catch {}
     try { if (map.getSource(layerId))              map.removeSource(layerId)             } catch {}
   }
 
-  setVisibility(map: mapboxgl.Map, layerId: string, visible: boolean) {
+  setVisibility(map: maplibregl.Map, layerId: string, visible: boolean) {
     const v = visible ? 'visible' : 'none'
     try { if (map.getLayer(`${layerId}-layer`))   map.setLayoutProperty(`${layerId}-layer`,   'visibility', v) } catch {}
     try { if (map.getLayer(`${layerId}-outline`)) map.setLayoutProperty(`${layerId}-outline`, 'visibility', v) } catch {}
   }
 
-  updateStyle(map: mapboxgl.Map, layer: GeoLayer) {
+  updateStyle(map: maplibregl.Map, layer: GeoLayer) {
     const geoType = getGeometryType(layer.data)
     try {
       if (geoType === 'Point' || geoType === 'MultiPoint') {

@@ -54,7 +54,7 @@ function ComingSoonPage() {
         gap: '12px',
       }}>
         <button
-          onClick={() => navigate('/')}
+          onClick={() => navigate('/home')}
           style={{
             background: 'transparent',
             border: 'none',

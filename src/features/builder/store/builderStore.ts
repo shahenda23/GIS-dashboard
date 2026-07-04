@@ -299,7 +299,7 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
 
     if (error || !data) {
       console.error('Load error:', error?.message)
-      set({ isLoading: false, ownerId: null })
+      set({ isLoading: false, ownerId: null, dashboardId: '' })
       return
     }
 
